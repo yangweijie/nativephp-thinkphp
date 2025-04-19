@@ -1,128 +1,51 @@
 {
-    "name": "nativephp/thinkphp",
-    "description": "ThinkPHP wrapper for the NativePHP framework.",
-    "keywords": [
-        "nativephp",
-        "thinkphp",
-        "nativephp-thinkphp"
-    ],
-    "homepage": "https://github.com/yangweijie/nativephp-thinkphp",
+    "name": "james.xue/nativephp-thinkphp",
+    "description": "ThinkPHP的NativePHP扩展包",
+    "type": "library",
     "license": "MIT",
-    "authors": [
-        {
-            "name": "Your Name",
-            "email": "your.email@example.com",
-            "role": "Developer"
-        }
-    ],
-    "require": {
-        "php": "^8.1",
-        "symfony/finder": "^6.2|^7.0",
-        "topthink/framework": "^8.0",
-        "topthink/think-filesystem": "^2.0",
-        "ext-curl": "*",
-        "ext-pdo": "*"
-    },
-    "require-dev": {
-        "phpstan/phpstan": "^2.1",
-        "phpunit/phpunit": "^9.0"
-    },
     "autoload": {
         "psr-4": {
-            "Native\\ThinkPHP\\": "src/"
+            "NativePHP\\Think\\": "src/"
         },
         "files": [
-            "src/helpers.php",
-            "src/Plugins/functions.php",
-            "src/helpers/functions.php"
+            "src/helpers.php"
         ]
     },
     "autoload-dev": {
         "psr-4": {
-            "Native\\ThinkPHP\\Tests\\": "tests/"
-        },
-        "files": [
-            "tests/helpers.php",
-            "tests/Mock/Mockery.php",
-            "tests/Mock/Http.php",
-            "tests/Mock/FileSystem.php",
-            "tests/Mock/Config.php",
-            "tests/Mock/ChildProcess.php"
-        ]
+            "NativePHP\\Think\\Tests\\": "tests/"
+        }
     },
-    "scripts": {
-        "test": "vendor/bin/phpunit",
-        "test:unit": "vendor/bin/phpunit --testsuite=Unit",
-        "test:feature": "vendor/bin/phpunit --testsuite=Feature",
-        "test:integration": "vendor/bin/phpunit --testsuite=Integration",
-        "test:coverage": "vendor/bin/phpunit --coverage-html coverage",
-        "phpcs": "phpcs --standard=PSR12 src tests",
-        "phpstan": "phpstan analyse src tests",
-        "php-cs-fixer": "php-cs-fixer fix --dry-run --diff",
-        "php-cs-fixer:fix": "php-cs-fixer fix",
-        "lint": [
-            "@phpcs",
-            "@phpstan",
-            "@php-cs-fixer"
-        ],
-        "fix": [
-            "@php-cs-fixer:fix"
-        ]
+    "authors": [
+        {
+            "name": "james.xue",
+            "email": "1527736751@qq.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "topthink/framework": "^8.0",
+        "symfony/process": "^6.0"
     },
-    "config": {
-        "sort-packages": true
+    "require-dev": {
+        "mockery/mockery": "^1.5",
+        "pestphp/pest": "^3.7"
     },
     "extra": {
         "think": {
             "services": [
-                "Native\\ThinkPHP\\NativeServiceProvider"
+                "NativePHP\\Think\\NativeAppServiceProvider"
             ],
             "config": {
-                "native": "src/config.php"
-            },
-            "facades": {
-                "Alert": "Native\\ThinkPHP\\Facades\\Alert",
-                "App": "Native\\ThinkPHP\\Facades\\App",
-                "Window": "Native\\ThinkPHP\\Facades\\Window",
-                "Menu": "Native\\ThinkPHP\\Facades\\Menu",
-                "Notification": "Native\\ThinkPHP\\Facades\\Notification",
-                "Clipboard": "Native\\ThinkPHP\\Facades\\Clipboard",
-                "ContextMenu": "Native\\ThinkPHP\\Facades\\ContextMenu",
-                "GlobalShortcut": "Native\\ThinkPHP\\Facades\\GlobalShortcut",
-                "Tray": "Native\\ThinkPHP\\Facades\\Tray",
-                "Dialog": "Native\\ThinkPHP\\Facades\\Dialog",
-                "FileSystem": "Native\\ThinkPHP\\Facades\\FileSystem",
-                "System": "Native\\ThinkPHP\\Facades\\System",
-                "Screen": "Native\\ThinkPHP\\Facades\\Screen",
-                "Updater": "Native\\ThinkPHP\\Facades\\Updater",
-                "Http": "Native\\ThinkPHP\\Facades\\Http",
-                "Database": "Native\\ThinkPHP\\Facades\\Database",
-                "Settings": "Native\\ThinkPHP\\Facades\\Settings",
-                "Shell": "Native\\ThinkPHP\\Facades\\Shell",
-                "Translator": "Native\\ThinkPHP\\Facades\\Translator",
-                "Process": "Native\\ThinkPHP\\Facades\\Process",
-                "ProgressBar": "Native\\ThinkPHP\\Facades\\ProgressBar",
-                "Printer": "Native\\ThinkPHP\\Facades\\Printer",
-                "Speech": "Native\\ThinkPHP\\Facades\\Speech",
-                "Device": "Native\\ThinkPHP\\Facades\\Device",
-                "Geolocation": "Native\\ThinkPHP\\Facades\\Geolocation",
-                "PushNotification": "Native\\ThinkPHP\\Facades\\PushNotification",
-                "Logger": "Native\\ThinkPHP\\Facades\\Logger",
-                "Cache": "Native\\ThinkPHP\\Facades\\Cache",
-                "Event": "Native\\ThinkPHP\\Facades\\Event",
-                "Config": "Native\\ThinkPHP\\Facades\\Config",
-                "Broadcasting": "Native\\ThinkPHP\\Facades\\Broadcasting",
-                "ChildProcess": "Native\\ThinkPHP\\Facades\\ChildProcess",
-                "QueueWorker": "Native\\ThinkPHP\\Facades\\QueueWorker",
-                "Network": "Native\\ThinkPHP\\Facades\\Network",
-                "ProgressBar": "Native\\ThinkPHP\\Facades\\ProgressBar",
-                "Shell": "Native\\ThinkPHP\\Facades\\Shell",
-                "Assets": "Native\\ThinkPHP\\Facades\\Assets",
-                "Security": "Native\\ThinkPHP\\Facades\\Security",
-                "DeveloperTools": "Native\\ThinkPHP\\Facades\\DeveloperTools"
+                "native": "src/config/native.php"
             }
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
 }

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{$title}</title>
+    <style>
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background-color: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+        }
+        .version {
+            margin-top: 20px;
+            color: #7f8c8d;
+        }
+        .copyright {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #95a5a6;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">N</div>
+        <h1>NativePHP-ThinkPHP</h1>
+        <p>一个将 NativePHP 移植到 ThinkPHP 框架的包，让您可以使用 ThinkPHP 构建桌面应用程序。</p>
+        
+        <div class="version">
+            版本: {$version}
+        </div>
+        
+        <div class="copyright">
+            &copy; 2023 NativePHP-ThinkPHP 团队
+        </div>
+        
+        <button id="closeButton">关闭</button>
+    </div>
+    
+    <script>
+        document.getElementById('closeButton').addEventListener('click', function() {
+            window.Native.window.close();
+        });
+    </script>
+</body>
+</html>
