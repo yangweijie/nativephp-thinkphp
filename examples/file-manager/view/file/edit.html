@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>编辑文件 - {$filename}</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>编辑文件: {$filename}</h1>
+            <div class="path-navigation">
+                <input type="text" id="pathInput" value="{$path}" readonly>
+            </div>
+            <div class="actions">
+                <a href="/file/index?path={:urlencode(dirname($path))}" class="btn">返回</a>
+                <a href="/file/view?path={:urlencode($path)}" class="btn">查看</a>
+                <button onclick="saveFile()" class="btn btn-primary">保存</button>
+                <button onclick="openFile('{$path}')" class="btn">使用系统应用打开</button>
+            </div>
+        </div>
+        
+        <div class="editor">
+            <textarea id="editor" data-path="{$path}">{$content}</textarea>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 自动调整编辑器高度
+            const editor = document.getElementById('editor');
+            editor.style.height = (window.innerHeight - 200) + 'px';
+            
+            // 监听 Ctrl+S 快捷键
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveFile();
+                }
+            });
+        });
+        
+        function saveFile() {
+            const editor = document.getElementById('editor');
+            const path = editor.dataset.path;
+            const content = editor.value;
+            
+            fetch('/file/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'path=' + encodeURIComponent(path) + '&content=' + encodeURIComponent(content),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('保存成功', '文件已成功保存');
+                } else {
+                    showNotification('保存失败', data.message || '未知错误');
+                }
+            })
+            .catch(error => {
+                showNotification('保存失败', error.message);
+            });
+        }
+        
+        function showNotification(title, message) {
+            // 显示通知
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <div class="notification-title">${title}</div>
+                <div class="notification-message">${message}</div>
+            `;
+            document.body.appendChild(notification);
+            
+            // 3秒后自动关闭
+            setTimeout(() => {
+                notification.classList.add('notification-hide');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

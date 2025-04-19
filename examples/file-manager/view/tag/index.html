@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>标签管理</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        .tags-container {
+            margin-top: 20px;
+        }
+        
+        .tag-list {
+            margin-top: 20px;
+        }
+        
+        .tag-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            transition: background-color 0.2s;
+        }
+        
+        .tag-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .tag-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        
+        .tag-info {
+            flex: 1;
+        }
+        
+        .tag-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .tag-details {
+            color: #666;
+            font-size: 13px;
+        }
+        
+        .tag-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .tag-actions button {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        
+        .add-tag-form {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .form-row label {
+            width: 80px;
+            margin-right: 10px;
+            font-weight: 600;
+        }
+        
+        .form-row input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        
+        .form-row input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 2px;
+            background-color: #fff;
+        }
+        
+        .empty-tags {
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        
+        .tag-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>标签管理</h1>
+            <div class="actions">
+                <a href="/file/index" class="btn">返回文件管理器</a>
+            </div>
+        </div>
+        
+        <div class="tags-container">
+            <div class="add-tag-form" id="addTagForm">
+                <h3>添加新标签</h3>
+                <div class="form-row">
+                    <label for="tagName">标签名称:</label>
+                    <input type="text" id="tagName" placeholder="输入标签名称">
+                </div>
+                <div class="form-row">
+                    <label for="tagColor">标签颜色:</label>
+                    <input type="color" id="tagColor" value="#cccccc">
+                </div>
+                <div class="form-actions">
+                    <button onclick="addTag()" class="btn btn-primary">添加标签</button>
+                </div>
+            </div>
+            
+            {if empty($tags)}
+            <div class="empty-tags">
+                <p>暂无标签</p>
+                <p>添加标签来组织和分类您的文件</p>
+            </div>
+            {else}
+            <div class="tag-list">
+                {volist name="tags" id="tag"}
+                <div class="tag-item" data-id="{$tag.id}">
+                    <div class="tag-color" style="background-color: {$tag.color};"></div>
+                    <div class="tag-info">
+                        <div class="tag-name">{$tag.name}</div>
+                        <div class="tag-details">
+                            <div>创建时间: {:date('Y-m-d H:i:s', $tag.created)}</div>
+                        </div>
+                    </div>
+                    <div class="tag-actions">
+                        <a href="/tag/findByTag?tagId={$tag.id}" class="btn">查看文件</a>
+                        <button onclick="editTag({$tag.id}, '{$tag.name}', '{$tag.color}')" class="btn">编辑</button>
+                        <button onclick="deleteTag({$tag.id})" class="btn btn-secondary">删除</button>
+                    </div>
+                </div>
+                {/volist}
+            </div>
+            {/if}
+        </div>
+    </div>
+    
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">标题</h2>
+            <div id="modalBody">内容</div>
+            <div id="modalFooter">
+                <button id="modalConfirm" class="btn btn-primary">确定</button>
+                <button id="modalCancel" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 初始化模态框
+        document.addEventListener('DOMContentLoaded', function() {
+            initModal();
+        });
+        
+        // 添加标签
+        function addTag() {
+            const name = document.getElementById('tagName').value;
+            const color = document.getElementById('tagColor').value;
+            
+            if (!name) {
+                showNotification('错误', '标签名称不能为空');
+                return;
+            }
+            
+            fetch('/tag/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'name=' + encodeURIComponent(name) + '&color=' + encodeURIComponent(color),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', '标签添加成功');
+                    window.location.reload();
+                } else {
+                    showNotification('错误', data.message || '添加标签失败');
+                }
+            })
+            .catch(error => {
+                showNotification('错误', error.message);
+            });
+        }
+        
+        // 编辑标签
+        function editTag(id, name, color) {
+            showModal('编辑标签', `
+                <div class="form-row">
+                    <label for="editTagName">标签名称:</label>
+                    <input type="text" id="editTagName" value="${name}" placeholder="输入标签名称">
+                </div>
+                <div class="form-row">
+                    <label for="editTagColor">标签颜色:</label>
+                    <input type="color" id="editTagColor" value="${color}">
+                </div>
+            `, function() {
+                const newName = document.getElementById('editTagName').value;
+                const newColor = document.getElementById('editTagColor').value;
+                
+                if (!newName) {
+                    showNotification('错误', '标签名称不能为空');
+                    return;
+                }
+                
+                fetch('/tag/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'id=' + id + '&name=' + encodeURIComponent(newName) + '&color=' + encodeURIComponent(newColor),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('成功', '标签更新成功');
+                        window.location.reload();
+                    } else {
+                        showNotification('错误', data.message || '更新标签失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            });
+        }
+        
+        // 删除标签
+        function deleteTag(id) {
+            showModal('删除标签', `
+                <p>确定要删除此标签吗？</p>
+                <p>此操作将同时移除所有文件上的此标签。</p>
+            `, function() {
+                fetch('/tag/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'id=' + id,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('成功', '标签已删除');
+                        window.location.reload();
+                    } else {
+                        showNotification('错误', data.message || '删除标签失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

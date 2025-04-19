@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NativePHP for ThinkPHP 高级功能示例</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            margin-top: 30px;
+        }
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0055aa;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #0066cc;
+        }
+        .environment {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .desktop {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .development {
+            background-color: #FFC107;
+            color: #333;
+        }
+        .web {
+            background-color: #2196F3;
+            color: white;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-bar-inner {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .battery-level {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .battery-icon {
+            width: 30px;
+            height: 15px;
+            border: 2px solid #333;
+            border-radius: 3px;
+            position: relative;
+            margin-right: 10px;
+        }
+        .battery-icon:after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: -4px;
+            width: 3px;
+            height: 10px;
+            background-color: #333;
+            border-radius: 0 2px 2px 0;
+        }
+        .battery-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+        }
+        .battery-text {
+            font-weight: bold;
+        }
+        .charging-icon {
+            color: #FFC107;
+            margin-left: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>NativePHP for ThinkPHP 高级功能示例 <span id="environment" class="environment"></span></h1>
+    
+    <div class="section">
+        <h3>键盘功能</h3>
+        <div>
+            <button id="btn-register-shortcut">注册快捷键 (Ctrl+Shift+K)</button>
+            <button id="btn-unregister-shortcut">注销快捷键</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <input type="text" id="text-to-type" placeholder="输入要模拟的文本">
+            <button id="btn-send-text">模拟输入</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>电源监控</h3>
+        <div>
+            <button id="btn-get-idle-time">获取系统空闲时间</button>
+            <button id="btn-get-power-state">获取电源状态</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <div class="battery-level">
+                <div class="battery-icon">
+                    <div class="battery-fill" id="battery-fill"></div>
+                </div>
+                <span class="battery-text" id="battery-text">电池电量: 获取中...</span>
+                <span class="charging-icon" id="charging-icon">⚡</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Dock 功能 (macOS 专用)</h3>
+        <div>
+            <input type="text" id="badge-text" placeholder="徽章文本">
+            <button id="btn-set-badge">设置徽章</button>
+            <button id="btn-clear-badge">清除徽章</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <button id="btn-bounce">弹跳图标</button>
+            <div style="margin-top: 10px;">
+                <div>下载进度:</div>
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" id="progress-bar"></div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button id="btn-start-progress">开始进度</button>
+                    <button id="btn-clear-progress">清除进度</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>结果</h2>
+    <div id="result" class="result">
+        操作结果将显示在这里...
+    </div>
+
+    <script src="/static/js/nativephp.js"></script>
+    <script src="/static/js/nativephp-extended.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取应用环境
+            NativeClient.app.getEnvironment().then(function(environment) {
+                const envElement = document.getElementById('environment');
+                envElement.textContent = environment;
+                envElement.classList.add(environment);
+            }).catch(function(error) {
+                document.getElementById('environment').textContent = 'web';
+                document.getElementById('environment').classList.add('web');
+                console.error('获取应用环境失败', error);
+            });
+
+            // 存储快捷键ID
+            let shortcutId = null;
+
+            // 注册快捷键
+            document.getElementById('btn-register-shortcut').addEventListener('click', function() {
+                NativeClient.keyboard.register('CommandOrControl+Shift+K', function() {
+                    showResult('快捷键 Ctrl+Shift+K 被触发!');
+                }).then(function(id) {
+                    shortcutId = id;
+                    showResult('快捷键已注册，ID: ' + id);
+                }).catch(function(error) {
+                    showResult('注册快捷键失败: ' + error);
+                });
+            });
+
+            // 注销快捷键
+            document.getElementById('btn-unregister-shortcut').addEventListener('click', function() {
+                if (!shortcutId) {
+                    showResult('没有已注册的快捷键');
+                    return;
+                }
+
+                NativeClient.keyboard.unregister(shortcutId).then(function(success) {
+                    if (success) {
+                        showResult('快捷键已注销');
+                        shortcutId = null;
+                    } else {
+                        showResult('注销快捷键失败');
+                    }
+                }).catch(function(error) {
+                    showResult('注销快捷键失败: ' + error);
+                });
+            });
+
+            // 模拟输入文本
+            document.getElementById('btn-send-text').addEventListener('click', function() {
+                const text = document.getElementById('text-to-type').value;
+                if (!text) {
+                    showResult('请输入要模拟的文本');
+                    return;
+                }
+
+                NativeClient.keyboard.sendText(text).then(function(success) {
+                    if (success) {
+                        showResult('文本已模拟输入: ' + text);
+                    } else {
+                        showResult('模拟输入文本失败');
+                    }
+                }).catch(function(error) {
+                    showResult('模拟输入文本失败: ' + error);
+                });
+            });
+
+            // 获取系统空闲时间
+            document.getElementById('btn-get-idle-time').addEventListener('click', function() {
+                NativeClient.powerMonitor.getSystemIdleTime().then(function(idleTime) {
+                    showResult('系统空闲时间: ' + idleTime + ' 秒');
+                }).catch(function(error) {
+                    showResult('获取系统空闲时间失败: ' + error);
+                });
+            });
+
+            // 获取电源状态
+            document.getElementById('btn-get-power-state').addEventListener('click', function() {
+                NativeClient.powerMonitor.getPowerState().then(function(state) {
+                    showResult('电源状态: ' + state);
+                }).catch(function(error) {
+                    showResult('获取电源状态失败: ' + error);
+                });
+            });
+
+            // 更新电池信息
+            function updateBatteryInfo() {
+                NativeClient.powerMonitor.getBatteryLevel().then(function(level) {
+                    const percent = Math.round(level * 100);
+                    document.getElementById('battery-fill').style.width = percent + '%';
+                    document.getElementById('battery-text').textContent = '电池电量: ' + percent + '%';
+                    
+                    // 根据电量设置颜色
+                    let color = '#4CAF50'; // 绿色
+                    if (percent < 20) {
+                        color = '#F44336'; // 红色
+                    } else if (percent < 50) {
+                        color = '#FFC107'; // 黄色
+                    }
+                    document.getElementById('battery-fill').style.backgroundColor = color;
+                    
+                    // 检查是否正在充电
+                    NativeClient.powerMonitor.isBatteryCharging().then(function(charging) {
+                        document.getElementById('charging-icon').style.display = charging ? 'inline' : 'none';
+                    });
+                }).catch(function(error) {
+                    console.error('获取电池信息失败', error);
+                });
+            }
+            
+            // 初始化时更新电池信息
+            updateBatteryInfo();
+            
+            // 每30秒更新一次电池信息
+            setInterval(updateBatteryInfo, 30000);
+
+            // 设置徽章
+            document.getElementById('btn-set-badge').addEventListener('click', function() {
+                const text = document.getElementById('badge-text').value;
+                if (!text) {
+                    showResult('请输入徽章文本');
+                    return;
+                }
+
+                NativeClient.dock.setBadge(text).then(function(success) {
+                    if (success) {
+                        showResult('徽章已设置: ' + text);
+                    } else {
+                        showResult('设置徽章失败');
+                    }
+                }).catch(function(error) {
+                    showResult('设置徽章失败: ' + error);
+                });
+            });
+
+            // 清除徽章
+            document.getElementById('btn-clear-badge').addEventListener('click', function() {
+                NativeClient.dock.clearBadge().then(function(success) {
+                    if (success) {
+                        showResult('徽章已清除');
+                    } else {
+                        showResult('清除徽章失败');
+                    }
+                }).catch(function(error) {
+                    showResult('清除徽章失败: ' + error);
+                });
+            });
+
+            // 弹跳图标
+            document.getElementById('btn-bounce').addEventListener('click', function() {
+                NativeClient.dock.bounce().then(function(success) {
+                    if (success) {
+                        showResult('图标已弹跳');
+                    } else {
+                        showResult('弹跳图标失败');
+                    }
+                }).catch(function(error) {
+                    showResult('弹跳图标失败: ' + error);
+                });
+            });
+
+            // 模拟下载进度
+            let progressInterval = null;
+            let progress = 0;
+
+            // 开始进度
+            document.getElementById('btn-start-progress').addEventListener('click', function() {
+                // 清除之前的进度
+                clearInterval(progressInterval);
+                progress = 0;
+                
+                // 更新进度条
+                progressInterval = setInterval(function() {
+                    progress += 0.01;
+                    if (progress > 1) {
+                        clearInterval(progressInterval);
+                        progress = 1;
+                    }
+                    
+                    // 更新UI
+                    document.getElementById('progress-bar').style.width = (progress * 100) + '%';
+                    
+                    // 更新Dock进度
+                    NativeClient.dock.setDownloadProgress(progress).catch(function(error) {
+                        console.error('设置下载进度失败', error);
+                    });
+                }, 100);
+                
+                showResult('下载进度已开始');
+            });
+
+            // 清除进度
+            document.getElementById('btn-clear-progress').addEventListener('click', function() {
+                clearInterval(progressInterval);
+                progress = 0;
+                document.getElementById('progress-bar').style.width = '0%';
+                
+                NativeClient.dock.clearDownloadProgress().then(function(success) {
+                    if (success) {
+                        showResult('下载进度已清除');
+                    } else {
+                        showResult('清除下载进度失败');
+                    }
+                }).catch(function(error) {
+                    showResult('清除下载进度失败: ' + error);
+                });
+            });
+
+            // 显示结果
+            function showResult(message) {
+                document.getElementById('result').textContent = message;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>推送通知客户端</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>推送通知客户端</h2>
+            </div>
+            
+            <div class="nav-menu">
+                <ul>
+                    <li class="active"><a href="/push/index">主页</a></li>
+                    <li><a href="/push/history">历史记录</a></li>
+                    <li><a href="/push/settings">设置</a></li>
+                </ul>
+            </div>
+            
+            <div class="device-info">
+                <h3>设备信息</h3>
+                {if !empty($device)}
+                <div class="device-details">
+                    <p><strong>提供商：</strong> {$device.provider}</p>
+                    <p><strong>令牌：</strong> <span class="token">{$device.token}</span></p>
+                    <p><strong>注册时间：</strong> {$device.registered_at}</p>
+                    <button class="btn btn-danger" onclick="unregisterDevice()">注销设备</button>
+                    <button class="btn btn-primary" onclick="sendTestNotification()">发送测试通知</button>
+                </div>
+                {else}
+                <div class="device-register">
+                    <p>设备尚未注册，请注册设备以接收推送通知。</p>
+                    <div class="register-form">
+                        <input type="text" id="tokenInput" placeholder="设备令牌" class="form-control">
+                        <select id="providerSelect" class="form-control">
+                            <option value="firebase" {$provider == 'firebase' ? 'selected' : ''}>Firebase</option>
+                            <option value="apns" {$provider == 'apns' ? 'selected' : ''}>APNS</option>
+                            <option value="jpush" {$provider == 'jpush' ? 'selected' : ''}>极光推送</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="registerDevice()">注册设备</button>
+                    </div>
+                </div>
+                {/if}
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="content-header">
+                <h1>推送通知</h1>
+                <div class="actions">
+                    <button class="btn btn-secondary" onclick="refreshNotifications()">刷新</button>
+                    <button class="btn btn-danger" onclick="clearHistory()">清空历史记录</button>
+                </div>
+            </div>
+            
+            <div class="notifications">
+                <h3>最近通知</h3>
+                {if empty($notifications)}
+                <p>暂无通知</p>
+                {else}
+                <div class="notification-list">
+                    {volist name="notifications" id="notification"}
+                    <div class="notification-item {$notification.status == 'received' ? 'unread' : ''}">
+                        <div class="notification-header">
+                            <h4>{$notification.title}</h4>
+                            <span class="notification-time">{$notification.received_at ?: $notification.sent_at}</span>
+                        </div>
+                        <div class="notification-body">
+                            <p>{$notification.body}</p>
+                        </div>
+                        <div class="notification-footer">
+                            <span class="notification-status">{$notification.status}</span>
+                            {if $notification.status == 'received'}
+                            <button class="btn btn-sm btn-primary" onclick="markAsRead('{$notification.id}')">标记为已读</button>
+                            {/if}
+                        </div>
+                    </div>
+                    {/volist}
+                </div>
+                <div class="view-more">
+                    <a href="/push/history">查看更多</a>
+                </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        function registerDevice() {
+            const token = document.getElementById('tokenInput').value;
+            const provider = document.getElementById('providerSelect').value;
+            
+            if (!token) {
+                alert('设备令牌不能为空');
+                return;
+            }
+            
+            fetch('/push/registerDevice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    token,
+                    provider,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('注册设备失败');
+            });
+        }
+        
+        function unregisterDevice() {
+            if (!confirm('确定要注销设备吗？注销后将不再接收推送通知。')) {
+                return;
+            }
+            
+            fetch('/push/unregisterDevice', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('注销设备失败');
+            });
+        }
+        
+        function sendTestNotification() {
+            fetch('/push/sendTestNotification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('发送测试通知失败');
+            });
+        }
+        
+        function markAsRead(id) {
+            fetch('/push/markAsRead', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 刷新页面
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('标记为已读失败');
+            });
+        }
+        
+        function clearHistory() {
+            if (!confirm('确定要清空历史记录吗？此操作不可恢复。')) {
+                return;
+            }
+            
+            fetch('/push/clearHistory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('清空历史记录失败');
+            });
+        }
+        
+        function refreshNotifications() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>

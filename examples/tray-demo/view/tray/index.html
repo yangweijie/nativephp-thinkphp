@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>系统托盘示例</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>系统托盘示例</h1>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>托盘控制</h2>
+                </div>
+                <div class="card-body">
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="showTray()">显示托盘图标</button>
+                        <button class="btn btn-danger" onclick="hideTray()">隐藏托盘图标</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>气泡提示</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="balloonTitle">标题</label>
+                        <input type="text" id="balloonTitle" class="form-control" value="系统托盘示例">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="balloonContent">内容</label>
+                        <input type="text" id="balloonContent" class="form-control" value="这是一条来自系统托盘的气泡提示">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="balloonIcon">图标</label>
+                        <select id="balloonIcon" class="form-control">
+                            <option value="info">信息</option>
+                            <option value="warning">警告</option>
+                            <option value="error">错误</option>
+                            <option value="none">无</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="showBalloon()">显示气泡提示</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>托盘设置</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="trayIcon">图标路径</label>
+                        <input type="text" id="trayIcon" class="form-control" value="{$settings.icon}">
+                        <div class="help-text">图标应为 PNG 格式，推荐尺寸为 16x16 或 32x32 像素</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="trayTooltip">提示文本</label>
+                        <input type="text" id="trayTooltip" class="form-control" value="{$settings.tooltip}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="saveTraySettings()">保存设置</button>
+                        <button class="btn btn-secondary" onclick="openSettings()">高级设置</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>托盘事件</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="clickAction">点击动作</label>
+                        <select id="clickAction" class="form-control" onchange="setAction('click', this.value)">
+                            <option value="none" {$settings.click_action == 'none' ? 'selected' : ''}>无动作</option>
+                            <option value="open_window" {$settings.click_action == 'open_window' ? 'selected' : ''}>打开主窗口</option>
+                            <option value="show_notification" {$settings.click_action == 'show_notification' ? 'selected' : ''}>显示通知</option>
+                            <option value="show_settings" {$settings.click_action == 'show_settings' ? 'selected' : ''}>显示设置</option>
+                            <option value="exit_app" {$settings.click_action == 'exit_app' ? 'selected' : ''}>退出应用</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="doubleClickAction">双击动作</label>
+                        <select id="doubleClickAction" class="form-control" onchange="setAction('double_click', this.value)">
+                            <option value="none" {$settings.double_click_action == 'none' ? 'selected' : ''}>无动作</option>
+                            <option value="open_window" {$settings.double_click_action == 'open_window' ? 'selected' : ''}>打开主窗口</option>
+                            <option value="show_notification" {$settings.double_click_action == 'show_notification' ? 'selected' : ''}>显示通知</option>
+                            <option value="show_settings" {$settings.double_click_action == 'show_settings' ? 'selected' : ''}>显示设置</option>
+                            <option value="exit_app" {$settings.double_click_action == 'exit_app' ? 'selected' : ''}>退出应用</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rightClickAction">右键点击动作</label>
+                        <select id="rightClickAction" class="form-control" onchange="setAction('right_click', this.value)">
+                            <option value="none" {$settings.right_click_action == 'none' ? 'selected' : ''}>无动作</option>
+                            <option value="show_menu" {$settings.right_click_action == 'show_menu' ? 'selected' : ''}>显示菜单</option>
+                            <option value="open_window" {$settings.right_click_action == 'open_window' ? 'selected' : ''}>打开主窗口</option>
+                            <option value="show_notification" {$settings.right_click_action == 'show_notification' ? 'selected' : ''}>显示通知</option>
+                            <option value="show_settings" {$settings.right_click_action == 'show_settings' ? 'selected' : ''}>显示设置</option>
+                            <option value="exit_app" {$settings.right_click_action == 'exit_app' ? 'selected' : ''}>退出应用</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 显示托盘图标
+        function showTray() {
+            fetch('/tray/show', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '显示托盘图标失败');
+            });
+        }
+        
+        // 隐藏托盘图标
+        function hideTray() {
+            fetch('/tray/hide', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '隐藏托盘图标失败');
+            });
+        }
+        
+        // 显示气泡提示
+        function showBalloon() {
+            const title = document.getElementById('balloonTitle').value;
+            const content = document.getElementById('balloonContent').value;
+            const icon = document.getElementById('balloonIcon').value;
+            
+            fetch('/tray/showBalloon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title,
+                    content,
+                    icon,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '显示气泡提示失败');
+            });
+        }
+        
+        // 保存托盘设置
+        function saveTraySettings() {
+            const icon = document.getElementById('trayIcon').value;
+            const tooltip = document.getElementById('trayTooltip').value;
+            
+            // 设置图标
+            fetch('/tray/setIcon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    icon,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '设置托盘图标失败');
+            });
+            
+            // 设置提示文本
+            fetch('/tray/setTooltip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tooltip,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', '托盘设置已保存');
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '设置托盘提示文本失败');
+            });
+        }
+        
+        // 设置托盘事件动作
+        function setAction(event, action) {
+            fetch('/tray/setAction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    event,
+                    action,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '设置托盘事件动作失败');
+            });
+        }
+        
+        // 打开设置窗口
+        function openSettings() {
+            if (typeof window.NativePHP !== 'undefined') {
+                window.NativePHP.window.open('/tray/settings', {
+                    title: '托盘设置',
+                    width: 600,
+                    height: 400,
+                });
+            } else {
+                window.open('/tray/settings', '_blank');
+            }
+        }
+        
+        // 显示通知
+        function showNotification(title, body) {
+            if (typeof window.NativePHP !== 'undefined') {
+                window.NativePHP.notification.send(title, body);
+            } else {
+                alert(`${title}: ${body}`);
+            }
+        }
+    </script>
+</body>
+</html>

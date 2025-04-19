@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>文件管理器</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>文件管理器</h1>
+            <div class="path-navigation">
+                <input type="text" id="pathInput" value="{$path}" readonly>
+                <button onclick="goToParent()">上级目录</button>
+                <button onclick="refreshDirectory()">刷新</button>
+                <button onclick="selectFolder()">选择文件夹</button>
+                <button id="favoriteButton" onclick="toggleFavorite()" class="{$isFavorite ? 'favorited' : ''}">{$isFavorite ? '从收藏夹中删除' : '添加到收藏夹'}</button>
+                <a href="/favorite/index" class="btn">收藏夹</a>
+                <a href="/compare/index" class="btn">文件比较</a>
+                <a href="/watch/index" class="btn">文件监视</a>
+                <a href="/tag/index" class="btn">标签管理</a>
+            </div>
+            <div class="search-form">
+                <form action="/file/search" method="get">
+                    <input type="hidden" name="path" value="{$path}">
+                    <input type="text" name="keyword" placeholder="搜索文件和文件夹..." class="search-input">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="recursive" value="1">
+                        递归搜索子目录
+                    </label>
+                    <button type="submit" class="btn btn-primary">搜索</button>
+                </form>
+            </div>
+
+            <div class="filter-form">
+                <form action="/file/index" method="get" id="filterForm">
+                    <input type="hidden" name="path" value="{$path}">
+
+                    <div class="filter-group">
+                        <label for="filter_type">过滤器:</label>
+                        <select name="filter_type" id="filter_type" onchange="updateFilterValues()">
+                            <option value="" {$filterType == '' ? 'selected' : ''}>无</option>
+                            <option value="name" {$filterType == 'name' ? 'selected' : ''}>按名称</option>
+                            <option value="type" {$filterType == 'type' ? 'selected' : ''}>按类型</option>
+                            <option value="size" {$filterType == 'size' ? 'selected' : ''}>按大小</option>
+                            <option value="date" {$filterType == 'date' ? 'selected' : ''}>按日期</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group" id="filter_value_container">
+                        <!-- 按名称过滤 -->
+                        <div class="filter-value-group" id="filter_name" style="display: {$filterType == 'name' ? 'block' : 'none'}">
+                            <label for="filter_value_name">名称包含:</label>
+                            <input type="text" name="filter_value" id="filter_value_name" value="{$filterType == 'name' ? $filterValue : ''}" placeholder="输入文件名称...">
+                        </div>
+
+                        <!-- 按类型过滤 -->
+                        <div class="filter-value-group" id="filter_type" style="display: {$filterType == 'type' ? 'block' : 'none'}">
+                            <label for="filter_value_type">文件类型:</label>
+                            <select name="filter_value" id="filter_value_type">
+                                <option value="directory" {$filterType == 'type' && $filterValue == 'directory' ? 'selected' : ''}>目录</option>
+                                <option value="image" {$filterType == 'type' && $filterValue == 'image' ? 'selected' : ''}>图片</option>
+                                <option value="video" {$filterType == 'type' && $filterValue == 'video' ? 'selected' : ''}>视频</option>
+                                <option value="audio" {$filterType == 'type' && $filterValue == 'audio' ? 'selected' : ''}>音频</option>
+                                <option value="document" {$filterType == 'type' && $filterValue == 'document' ? 'selected' : ''}>文档</option>
+                                <option value="archive" {$filterType == 'type' && $filterValue == 'archive' ? 'selected' : ''}>压缩文件</option>
+                                <option value="code" {$filterType == 'type' && $filterValue == 'code' ? 'selected' : ''}>代码</option>
+                            </select>
+                        </div>
+
+                        <!-- 按大小过滤 -->
+                        <div class="filter-value-group" id="filter_size" style="display: {$filterType == 'size' ? 'block' : 'none'}">
+                            <label for="filter_value_size">文件大小:</label>
+                            <select name="filter_value" id="filter_value_size">
+                                <option value="empty" {$filterType == 'size' && $filterValue == 'empty' ? 'selected' : ''}>空文件 (0 KB)</option>
+                                <option value="small" {$filterType == 'size' && $filterValue == 'small' ? 'selected' : ''}>小文件 (< 100 KB)</option>
+                                <option value="medium" {$filterType == 'size' && $filterValue == 'medium' ? 'selected' : ''}>中等文件 (100 KB - 1 MB)</option>
+                                <option value="large" {$filterType == 'size' && $filterValue == 'large' ? 'selected' : ''}>大文件 (> 1 MB)</option>
+                            </select>
+                        </div>
+
+                        <!-- 按日期过滤 -->
+                        <div class="filter-value-group" id="filter_date" style="display: {$filterType == 'date' ? 'block' : 'none'}">
+                            <label for="filter_value_date">修改日期:</label>
+                            <select name="filter_value" id="filter_value_date">
+                                <option value="today" {$filterType == 'date' && $filterValue == 'today' ? 'selected' : ''}>今天</option>
+                                <option value="yesterday" {$filterType == 'date' && $filterValue == 'yesterday' ? 'selected' : ''}>昨天</option>
+                                <option value="week" {$filterType == 'date' && $filterValue == 'week' ? 'selected' : ''}>本周</option>
+                                <option value="month" {$filterType == 'date' && $filterValue == 'month' ? 'selected' : ''}>本月</option>
+                                <option value="year" {$filterType == 'date' && $filterValue == 'year' ? 'selected' : ''}>今年</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="sort_by">排序:</label>
+                        <select name="sort_by" id="sort_by">
+                            <option value="name" {$sortBy == 'name' ? 'selected' : ''}>名称</option>
+                            <option value="size" {$sortBy == 'size' ? 'selected' : ''}>大小</option>
+                            <option value="lastModified" {$sortBy == 'lastModified' ? 'selected' : ''}>修改日期</option>
+                            <option value="type" {$sortBy == 'type' ? 'selected' : ''}>类型</option>
+                        </select>
+                        <select name="sort_order" id="sort_order">
+                            <option value="asc" {$sortOrder == 'asc' ? 'selected' : ''}>升序</option>
+                            <option value="desc" {$sortOrder == 'desc' ? 'selected' : ''}>降序</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary">应用</button>
+                        <a href="/file/index?path={:urlencode($path)}" class="btn">重置</a>
+                    </div>
+                </form>
+            </div>
+            <div class="actions">
+                <button onclick="createFile()">新建文件</button>
+                <button onclick="createDirectory()">新建文件夹</button>
+                <button onclick="compressFiles()">压缩</button>
+                <button onclick="extractFile()">解压缩</button>
+                <a href="/log/index" class="btn btn-secondary">查看日志</a>
+            </div>
+
+            <div class="batch-actions" id="batchActions" style="display: none;">
+                <span class="batch-info">已选择 <span id="selectedCount">0</span> 项</span>
+                <button onclick="batchCopy()">批量复制</button>
+                <button onclick="batchMove()">批量移动</button>
+                <button onclick="batchDelete()">批量删除</button>
+                <button onclick="cancelSelection()">取消选择</button>
+            </div>
+        </div>
+
+        <div class="file-list" id="dropZone" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)">
+            <div id="dropOverlay" class="drop-overlay">
+                <div class="drop-message">
+                    <i class="drop-icon"></i>
+                    <p>拖放文件到这里上传</p>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"></th>
+                        <th>名称</th>
+                        <th>大小</th>
+                        <th>修改日期</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="files" id="file"}
+                    <tr data-path="{$file.path}" data-is-dir="{$file.isDir ? 'true' : 'false'}" data-name="{$file.name}" draggable="true" ondragstart="handleItemDragStart(event)" ondragend="handleItemDragEnd(event)">
+                        <td>
+                            <input type="checkbox" class="file-checkbox" onclick="updateRowSelection(this); updateBatchActions();">
+                        </td>
+                        <td class="file-name">
+                            <span class="icon {$file.icon}-icon"></span>
+                            <span class="name" ondblclick="openItem('{$file.path}', {$file.isDir})">{$file.name}</span>
+                        </td>
+                        <td>{$file.formattedSize}</td>
+                        <td>{$file.formattedLastModified}</td>
+                        <td class="actions">
+                            {if !$file.isDir}
+                                {if $file.type == 'archive'}
+                                <button onclick="viewArchive('{$file.path}')">查看压缩文件</button>
+                                <button onclick="extractFile('{$file.path}')">解压</button>
+                                {else}
+                                <button onclick="viewFile('{$file.path}')">查看</button>
+                                <button onclick="editFile('{$file.path}')">编辑</button>
+                                {/if}
+                            {/if}
+                            <button onclick="openItem('{$file.path}', {$file.isDir})">打开</button>
+                            <button onclick="showInFolder('{$file.path}')">在文件夹中显示</button>
+                            <button onclick="renameItem('{$file.path}', '{$file.name}')">重命名</button>
+                            <button onclick="deleteItem('{$file.path}', '{$file.name}')">删除</button>
+                            <button onclick="showProperties('{$file.path}')">属性</button>
+                            {if !$file.isDir && $file.type != 'archive'}
+                            <button onclick="compareFile('{$file.path}')">比较</button>
+                            {/if}
+                            <button onclick="compressItem('{$file.path}')">压缩</button>
+                            {if !$file.isDir}
+                            <button onclick="encryptFile('{$file.path}')">加密</button>
+                            {if $file.type == 'encrypted'}
+                            <button onclick="decryptFile('{$file.path}')">解密</button>
+                            {/if}
+                            {/if}
+                            <button onclick="toggleWatchPath('{$file.path}', {$file.isDir})" class="watch-button" data-path="{$file.path}">监视</button>
+                            <button onclick="manageFileTags('{$file.path}', '{$file.name}')" class="tag-button" data-path="{$file.path}">标签</button>
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">标题</h2>
+            <div id="modalBody">内容</div>
+            <div id="modalFooter">
+                <button id="modalConfirm" class="btn btn-primary">确定</button>
+                <button id="modalCancel" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 初始化按钮状态
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取所有监视按钮
+            const watchButtons = document.querySelectorAll('.watch-button');
+
+            // 逐个检查监视状态
+            watchButtons.forEach(button => {
+                const path = button.dataset.path;
+
+                fetch('/watch/check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.isWatched) {
+                        button.textContent = '停止监视';
+                        button.classList.add('watched');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking watch status:', error);
+                });
+            });
+
+            // 获取所有标签按钮
+            const tagButtons = document.querySelectorAll('.tag-button');
+
+            // 逐个检查标签状态
+            tagButtons.forEach(button => {
+                const path = button.dataset.path;
+
+                fetch('/tag/hasFileTags', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.hasTags) {
+                        button.classList.add('has-tags');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking tag status:', error);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

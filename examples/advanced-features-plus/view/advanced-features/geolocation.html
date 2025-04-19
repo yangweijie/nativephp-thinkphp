@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>地理位置</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-top: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #d32f2f;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        .info-item {
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 150px;
+        }
+        .map-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-available {
+            background-color: #4CAF50;
+        }
+        .status-unavailable {
+            background-color: #f44336;
+        }
+        .coordinates-group {
+            display: flex;
+            gap: 10px;
+        }
+        .coordinates-group input {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>地理位置</h1>
+        
+        <div class="section">
+            <h2>位置服务状态</h2>
+            <div class="result">
+                <div class="info-item">
+                    <span class="info-label">位置服务：</span>
+                    <span>
+                        <span class="status-indicator status-{$isAvailable ? 'available' : 'unavailable'}"></span>
+                        {$isAvailable ? '可用' : '不可用'}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">位置权限：</span>
+                    <span>{$permission}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>当前位置</h2>
+            <div class="button-group">
+                <button onclick="getCurrentPosition()">获取当前位置</button>
+            </div>
+            <div id="positionResult" class="result" style="display: none;"></div>
+            <div id="mapContainer" class="map-container" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>位置监视</h2>
+            <div class="button-group">
+                <button id="watchBtn" onclick="watchPosition()">开始监视位置</button>
+                <button id="clearWatchBtn" class="danger" onclick="clearWatch()" disabled>停止监视位置</button>
+            </div>
+            <div id="watchResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>距离计算</h2>
+            <div class="form-group">
+                <label>起点坐标</label>
+                <div class="coordinates-group">
+                    <input type="text" id="lat1" placeholder="纬度，例如：39.9042">
+                    <input type="text" id="lon1" placeholder="经度，例如：116.4074">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>终点坐标</label>
+                <div class="coordinates-group">
+                    <input type="text" id="lat2" placeholder="纬度，例如：31.2304">
+                    <input type="text" id="lon2" placeholder="经度，例如：121.4737">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="unit">单位</label>
+                <select id="unit">
+                    <option value="km">公里 (km)</option>
+                    <option value="mi">英里 (mi)</option>
+                    <option value="nm">海里 (nm)</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button onclick="calculateDistance()">计算距离</button>
+                <button class="secondary" onclick="useCurrentAsStart()">使用当前位置作为起点</button>
+            </div>
+            <div id="distanceResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>地理编码</h2>
+            <div class="form-group">
+                <label for="address">地址</label>
+                <input type="text" id="address" placeholder="例如：北京市海淀区中关村">
+            </div>
+            <div class="button-group">
+                <button onclick="geocodeAddress()">获取坐标</button>
+            </div>
+            <div id="geocodeResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>反向地理编码</h2>
+            <div class="form-group">
+                <label>坐标</label>
+                <div class="coordinates-group">
+                    <input type="text" id="latitude" placeholder="纬度，例如：39.9042">
+                    <input type="text" id="longitude" placeholder="经度，例如：116.4074">
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="reverseGeocode()">获取地址</button>
+                <button class="secondary" onclick="useCurrentForReverseGeocode()">使用当前位置</button>
+            </div>
+            <div id="reverseGeocodeResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 当前位置
+        let currentPosition = null;
+        
+        // 监视 ID
+        let watchId = null;
+        
+        // 获取当前位置
+        function getCurrentPosition() {
+            const positionResult = document.getElementById('positionResult');
+            positionResult.style.display = 'block';
+            positionResult.innerHTML = '获取位置中...';
+            
+            fetch('/advanced-features/getCurrentPosition', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 保存当前位置
+                    currentPosition = data.position;
+                    
+                    // 显示位置信息
+                    positionResult.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">纬度：</span>
+                            <span>${data.position.coords.latitude}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">经度：</span>
+                            <span>${data.position.coords.longitude}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">精度：</span>
+                            <span>${data.position.coords.accuracy} 米</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">海拔：</span>
+                            <span>${data.position.coords.altitude !== null ? data.position.coords.altitude + ' 米' : '未知'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">海拔精度：</span>
+                            <span>${data.position.coords.altitudeAccuracy !== null ? data.position.coords.altitudeAccuracy + ' 米' : '未知'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">方向：</span>
+                            <span>${data.position.coords.heading !== null ? data.position.coords.heading + '°' : '未知'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">速度：</span>
+                            <span>${data.position.coords.speed !== null ? data.position.coords.speed + ' 米/秒' : '未知'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">时间戳：</span>
+                            <span>${new Date(data.position.timestamp).toLocaleString()}</span>
+                        </div>
+                    `;
+                    
+                    // 显示地图
+                    showMap(data.position.coords.latitude, data.position.coords.longitude);
+                } else {
+                    positionResult.innerHTML = `<div style="color: #f44336">获取位置失败：${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                positionResult.innerHTML = `<div style="color: #f44336">获取位置失败：${error.message}</div>`;
+            });
+        }
+        
+        // 监视位置
+        function watchPosition() {
+            const watchResult = document.getElementById('watchResult');
+            watchResult.style.display = 'block';
+            watchResult.innerHTML = '开始监视位置...';
+            
+            fetch('/advanced-features/watchPosition', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 保存监视 ID
+                    watchId = data.watchId;
+                    
+                    // 更新按钮状态
+                    document.getElementById('watchBtn').disabled = true;
+                    document.getElementById('clearWatchBtn').disabled = false;
+                    
+                    // 显示监视信息
+                    watchResult.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">监视状态：</span>
+                            <span>正在监视位置</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">监视 ID：</span>
+                            <span>${data.watchId}</span>
+                        </div>
+                    `;
+                    
+                    // 设置定时器，每 5 秒获取一次位置
+                    watchTimer = setInterval(() => {
+                        updateWatchPosition();
+                    }, 5000);
+                } else {
+                    watchResult.innerHTML = `<div style="color: #f44336">开始监视位置失败：${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                watchResult.innerHTML = `<div style="color: #f44336">开始监视位置失败：${error.message}</div>`;
+            });
+        }
+        
+        // 更新监视位置
+        function updateWatchPosition() {
+            // 获取当前位置
+            fetch('/advanced-features/getCurrentPosition', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 保存当前位置
+                    currentPosition = data.position;
+                    
+                    // 更新监视信息
+                    const watchResult = document.getElementById('watchResult');
+                    watchResult.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">监视状态：</span>
+                            <span>正在监视位置</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">监视 ID：</span>
+                            <span>${watchId}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">最新位置：</span>
+                            <span>${data.position.coords.latitude}, ${data.position.coords.longitude}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">精度：</span>
+                            <span>${data.position.coords.accuracy} 米</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">时间戳：</span>
+                            <span>${new Date(data.position.timestamp).toLocaleString()}</span>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        
+        // 停止监视位置
+        function clearWatch() {
+            fetch('/advanced-features/clearWatch', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 清除定时器
+                clearInterval(watchTimer);
+                
+                // 更新按钮状态
+                document.getElementById('watchBtn').disabled = false;
+                document.getElementById('clearWatchBtn').disabled = true;
+                
+                // 显示结果
+                const watchResult = document.getElementById('watchResult');
+                
+                if (data.success) {
+                    watchResult.innerHTML = `<div style="color: #4CAF50">已停止监视位置</div>`;
+                } else {
+                    watchResult.innerHTML = `<div style="color: #f44336">停止监视位置失败：${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('watchResult').innerHTML = `<div style="color: #f44336">停止监视位置失败：${error.message}</div>`;
+            });
+        }
+        
+        // 计算距离
+        function calculateDistance() {
+            const lat1 = document.getElementById('lat1').value;
+            const lon1 = document.getElementById('lon1').value;
+            const lat2 = document.getElementById('lat2').value;
+            const lon2 = document.getElementById('lon2').value;
+            const unit = document.getElementById('unit').value;
+            
+            if (!lat1 || !lon1 || !lat2 || !lon2) {
+                alert('请输入起点和终点坐标');
+                return;
+            }
+            
+            fetch('/advanced-features/calculateDistance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    lat1,
+                    lon1,
+                    lat2,
+                    lon2,
+                    unit,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const distanceResult = document.getElementById('distanceResult');
+                distanceResult.style.display = 'block';
+                
+                if (data.success) {
+                    let unitText = '';
+                    switch (unit) {
+                        case 'km':
+                            unitText = '公里';
+                            break;
+                        case 'mi':
+                            unitText = '英里';
+                            break;
+                        case 'nm':
+                            unitText = '海里';
+                            break;
+                    }
+                    
+                    distanceResult.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">起点：</span>
+                            <span>${lat1}, ${lon1}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">终点：</span>
+                            <span>${lat2}, ${lon2}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">距离：</span>
+                            <span>${data.distance.toFixed(2)} ${unitText}</span>
+                        </div>
+                    `;
+                } else {
+                    distanceResult.innerHTML = `<div style="color: #f44336">计算距离失败：${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const distanceResult = document.getElementById('distanceResult');
+                distanceResult.style.display = 'block';
+                distanceResult.innerHTML = `<div style="color: #f44336">计算距离失败：${error.message}</div>`;
+            });
+        }
+        
+        // 使用当前位置作为起点
+        function useCurrentAsStart() {
+            if (!currentPosition) {
+                alert('请先获取当前位置');
+                return;
+            }
+            
+            document.getElementById('lat1').value = currentPosition.coords.latitude;
+            document.getElementById('lon1').value = currentPosition.coords.longitude;
+        }
+        
+        // 地理编码
+        function geocodeAddress() {
+            const address = document.getElementById('address').value;
+            
+            if (!address) {
+                alert('请输入地址');
+                return;
+            }
+            
+            fetch('/advanced-features/getCoordinatesFromAddress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ address }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const geocodeResult = document.getElementById('geocodeResult');
+                geocodeResult.style.display = 'block';
+                
+                if (data.success) {
+                    geocodeResult.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">地址：</span>
+                            <span>${address}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">纬度：</span>
+                            <span>${data.coordinates.latitude}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">经度：</span>
+                            <span>${data.coordinates.longitude}</span>
+                        </div>
+                    `;
+                    
+                    // 显示地图
+                    showMap(data.coordinates.latitude, data.coordinates.longitude);
+                } else {
+                    geocodeResult.innerHTML = `<div style="color: #f44336">获取坐标失败：${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const geocodeResult = document.getElementById('geocodeResult');
+                geocodeResult.style.display = 'block';
+                geocodeResult.innerHTML = `<div style="color: #f44336">获取坐标失败：${error.message}</div>`;
+            });
+        }
+        
+        // 反向地理编码
+        function reverseGeocode() {
+            const latitude = document.getElementById('latitude').value;
+            const longitude = document.getElementById('longitude').value;
+            
+            if (!latitude || !longitude) {
+                alert('请输入坐标');
+                return;
+            }
+            
+            fetch('/advanced-features/getAddressFromCoordinates', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ latitude, longitude }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const reverseGeocodeResult = document.getElementById('reverseGeocodeResult');
+                reverseGeocodeResult.style.display = 'block';
+                
+                if (data.success) {
+                    reverseGeocodeResult.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">坐标：</span>
+                            <span>${latitude}, ${longitude}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">地址：</span>
+                            <span>${data.address.formattedAddress}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">国家：</span>
+                            <span>${data.address.country}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">省/州：</span>
+                            <span>${data.address.state}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">城市：</span>
+                            <span>${data.address.city}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">街道：</span>
+                            <span>${data.address.street}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">邮编：</span>
+                            <span>${data.address.postalCode}</span>
+                        </div>
+                    `;
+                    
+                    // 显示地图
+                    showMap(latitude, longitude);
+                } else {
+                    reverseGeocodeResult.innerHTML = `<div style="color: #f44336">获取地址失败：${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const reverseGeocodeResult = document.getElementById('reverseGeocodeResult');
+                reverseGeocodeResult.style.display = 'block';
+                reverseGeocodeResult.innerHTML = `<div style="color: #f44336">获取地址失败：${error.message}</div>`;
+            });
+        }
+        
+        // 使用当前位置进行反向地理编码
+        function useCurrentForReverseGeocode() {
+            if (!currentPosition) {
+                alert('请先获取当前位置');
+                return;
+            }
+            
+            document.getElementById('latitude').value = currentPosition.coords.latitude;
+            document.getElementById('longitude').value = currentPosition.coords.longitude;
+        }
+        
+        // 显示地图
+        function showMap(latitude, longitude) {
+            const mapContainer = document.getElementById('mapContainer');
+            mapContainer.style.display = 'block';
+            
+            // 如果有 NativePHP 的地图功能，使用它
+            if (typeof window.NativePHP !== 'undefined' && window.NativePHP.map) {
+                window.NativePHP.map.show(mapContainer, {
+                    center: {
+                        latitude,
+                        longitude,
+                    },
+                    zoom: 15,
+                    markers: [
+                        {
+                            latitude,
+                            longitude,
+                            title: '位置',
+                        },
+                    ],
+                });
+            } else {
+                // 否则，显示一个简单的地图占位符
+                mapContainer.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100%; background-color: #f0f0f0;">
+                        <div style="text-align: center;">
+                            <h3>地图</h3>
+                            <p>位置：${latitude}, ${longitude}</p>
+                            <p>（在实际应用中，这里会显示一个地图）</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

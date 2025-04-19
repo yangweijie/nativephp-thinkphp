@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>搜索结果 - 文件管理器</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>搜索结果</h1>
+            <div class="path-navigation">
+                <input type="text" id="pathInput" value="{$path}" readonly>
+                <button onclick="goToParent()">上级目录</button>
+                <button onclick="refreshDirectory()">刷新</button>
+                <button onclick="selectFolder()">选择文件夹</button>
+            </div>
+            <div class="search-form">
+                <form action="/file/search" method="get">
+                    <input type="hidden" name="path" value="{$path}">
+                    <input type="text" name="keyword" value="{$keyword}" placeholder="搜索文件和文件夹..." class="search-input">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="recursive" value="1" {$recursive ? 'checked' : ''}>
+                        递归搜索子目录
+                    </label>
+                    <button type="submit" class="btn btn-primary">搜索</button>
+                    <a href="/file/index?path={:urlencode($path)}" class="btn">返回</a>
+                </form>
+            </div>
+            <div class="search-info">
+                <p>在 <strong>{$path}</strong> {$recursive ? '及其子目录' : ''} 中搜索 "<strong>{$keyword}</strong>" 的结果：找到 <strong>{:count($files)}</strong> 个匹配项</p>
+            </div>
+        </div>
+        
+        <div class="file-list">
+            {if empty($files)}
+            <div class="empty-result">
+                <p>没有找到匹配的文件或文件夹。</p>
+            </div>
+            {else}
+            <table>
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>位置</th>
+                        <th>大小</th>
+                        <th>修改日期</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {volist name="files" id="file"}
+                    <tr data-path="{$file.path}" data-is-dir="{$file.isDir ? 'true' : 'false'}">
+                        <td class="file-name">
+                            <span class="icon {$file.icon}-icon"></span>
+                            <span class="name" ondblclick="openItem('{$file.path}', {$file.isDir})">{$file.name}</span>
+                        </td>
+                        <td class="file-location">{:dirname($file.path)}</td>
+                        <td>{$file.formattedSize}</td>
+                        <td>{$file.formattedLastModified}</td>
+                        <td class="actions">
+                            {if !$file.isDir}
+                            <button onclick="viewFile('{$file.path}')">查看</button>
+                            <button onclick="editFile('{$file.path}')">编辑</button>
+                            {/if}
+                            <button onclick="openItem('{$file.path}', {$file.isDir})">打开</button>
+                            <button onclick="showInFolder('{$file.path}')">在文件夹中显示</button>
+                            <button onclick="showProperties('{$file.path}')">属性</button>
+                        </td>
+                    </tr>
+                    {/volist}
+                </tbody>
+            </table>
+            {/if}
+        </div>
+    </div>
+    
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">标题</h2>
+            <div id="modalBody">内容</div>
+            <div id="modalFooter">
+                <button id="modalConfirm" class="btn btn-primary">确定</button>
+                <button id="modalCancel" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

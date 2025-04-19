@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>高级功能示例</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-top: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #d32f2f;
+        }
+        .shortcut {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>高级功能示例</h1>
+        
+        <div class="section">
+            <h2>系统托盘</h2>
+            <p>系统托盘图标已创建，可以在系统托盘区域找到它。</p>
+            <p>点击系统托盘图标可以显示菜单，包括显示主窗口、功能菜单和退出选项。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/advanced-features/tray', '系统托盘')">打开系统托盘页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>全局快捷键</h2>
+            <p>已注册以下全局快捷键：</p>
+            <ul>
+                <li><span class="shortcut">Ctrl+Shift+T</span> 显示系统托盘页面</li>
+                <li><span class="shortcut">Ctrl+Shift+S</span> 显示全局快捷键页面</li>
+                <li><span class="shortcut">Ctrl+Shift+C</span> 显示剪贴板页面</li>
+                <li><span class="shortcut">Ctrl+Shift+P</span> 显示屏幕捕获页面</li>
+                <li><span class="shortcut">Ctrl+Shift+U</span> 显示自动更新页面</li>
+                <li><span class="shortcut">Ctrl+Shift+Q</span> 退出应用</li>
+            </ul>
+            <div class="button-group">
+                <button onclick="openWindow('/advanced-features/shortcuts', '全局快捷键')">打开全局快捷键页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>剪贴板</h2>
+            <p>剪贴板功能允许你读取和写入剪贴板的文本、HTML 和图片。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/advanced-features/clipboard', '剪贴板')">打开剪贴板页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>屏幕捕获</h2>
+            <p>屏幕捕获功能允许你捕获屏幕截图和录制屏幕。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/advanced-features/screen', '屏幕捕获')">打开屏幕捕获页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>自动更新</h2>
+            <p>自动更新功能允许你检查、下载和安装应用更新。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/advanced-features/updater', '自动更新')">打开自动更新页面</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 打开窗口
+        function openWindow(url, title) {
+            if (typeof window.NativePHP !== 'undefined') {
+                window.NativePHP.window.open(url, {
+                    title: title,
+                    width: 800,
+                    height: 600,
+                });
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>

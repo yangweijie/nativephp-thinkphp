@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>自动更新</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-top: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #d32f2f;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        .info-item {
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 150px;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-bar-inner {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .update-info {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            display: none;
+        }
+        .update-available {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+        }
+        .update-not-available {
+            background-color: #f5f5f5;
+            border-left: 4px solid #9e9e9e;
+        }
+        .update-error {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>自动更新</h1>
+        
+        <div class="section">
+            <h2>当前版本信息</h2>
+            <div class="info-item">
+                <span class="info-label">当前版本：</span>
+                <span id="currentVersion">{$currentVersion}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">更新服务器：</span>
+                <span id="serverUrl">{$serverUrl}</span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>更新服务器设置</h2>
+            <div class="form-group">
+                <label for="updateServerUrl">更新服务器 URL</label>
+                <input type="text" id="updateServerUrl" placeholder="例如：https://updates.example.com">
+            </div>
+            <div class="button-group">
+                <button onclick="setUpdateServerUrl()">设置更新服务器</button>
+            </div>
+            <div id="serverResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>检查更新</h2>
+            <div class="button-group">
+                <button onclick="checkForUpdates()">检查更新</button>
+            </div>
+            <div id="updateInfo" class="update-info">
+                <div class="info-item">
+                    <span class="info-label">最新版本：</span>
+                    <span id="latestVersion"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">发布日期：</span>
+                    <span id="releaseDate"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">更新说明：</span>
+                    <div id="releaseNotes"></div>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">可以更新：</span>
+                    <span id="canUpdate"></span>
+                </div>
+                <div class="button-group" id="updateButtons" style="display: none;">
+                    <button onclick="downloadUpdate()">下载更新</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>下载和安装更新</h2>
+            <div class="info-item">
+                <span class="info-label">更新状态：</span>
+                <span id="updateStatus">空闲</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">下载进度：</span>
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" id="progressBar"></div>
+                </div>
+                <span id="progressText">0%</span>
+            </div>
+            <div class="button-group">
+                <button id="downloadBtn" onclick="downloadUpdate()" disabled>下载更新</button>
+                <button id="installBtn" onclick="installUpdate()" disabled>安装更新</button>
+                <button id="cancelBtn" class="danger" onclick="cancelUpdate()" disabled>取消更新</button>
+            </div>
+            <div id="downloadResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 更新状态检查定时器
+        let statusCheckInterval = null;
+        
+        // 当前更新信息
+        let currentUpdateInfo = null;
+        
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            // 启动状态检查定时器
+            startStatusCheck();
+        });
+        
+        // 设置更新服务器 URL
+        function setUpdateServerUrl() {
+            const url = document.getElementById('updateServerUrl').value;
+            
+            if (!url) {
+                showResult('serverResult', '服务器 URL 不能为空', false);
+                return;
+            }
+            
+            fetch('/advanced-features/setUpdateServerUrl', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('serverResult', '更新服务器已设置', true);
+                    document.getElementById('serverUrl').textContent = url;
+                } else {
+                    showResult('serverResult', '设置更新服务器失败：' + data.message, false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('serverResult', '设置更新服务器失败：' + error.message, false);
+            });
+        }
+        
+        // 检查更新
+        function checkForUpdates() {
+            const updateInfoElement = document.getElementById('updateInfo');
+            updateInfoElement.style.display = 'none';
+            updateInfoElement.className = 'update-info';
+            
+            fetch('/advanced-features/checkForUpdates', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 保存更新信息
+                    currentUpdateInfo = data.updateInfo;
+                    
+                    // 显示更新信息
+                    document.getElementById('latestVersion').textContent = data.updateInfo.version;
+                    document.getElementById('releaseDate').textContent = data.updateInfo.releaseDate;
+                    document.getElementById('releaseNotes').innerHTML = data.updateInfo.releaseNotes;
+                    document.getElementById('canUpdate').textContent = data.updateInfo.canUpdate ? '是' : '否';
+                    
+                    // 显示更新信息区域
+                    updateInfoElement.style.display = 'block';
+                    
+                    if (data.updateInfo.canUpdate) {
+                        // 有可用更新
+                        updateInfoElement.className = 'update-info update-available';
+                        document.getElementById('updateButtons').style.display = 'block';
+                        document.getElementById('downloadBtn').disabled = false;
+                    } else {
+                        // 没有可用更新
+                        updateInfoElement.className = 'update-info update-not-available';
+                        document.getElementById('updateButtons').style.display = 'none';
+                        document.getElementById('downloadBtn').disabled = true;
+                    }
+                } else {
+                    // 检查更新失败
+                    updateInfoElement.style.display = 'block';
+                    updateInfoElement.className = 'update-info update-error';
+                    document.getElementById('latestVersion').textContent = '未知';
+                    document.getElementById('releaseDate').textContent = '未知';
+                    document.getElementById('releaseNotes').textContent = '检查更新失败：' + data.message;
+                    document.getElementById('canUpdate').textContent = '否';
+                    document.getElementById('updateButtons').style.display = 'none';
+                    document.getElementById('downloadBtn').disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // 检查更新失败
+                updateInfoElement.style.display = 'block';
+                updateInfoElement.className = 'update-info update-error';
+                document.getElementById('latestVersion').textContent = '未知';
+                document.getElementById('releaseDate').textContent = '未知';
+                document.getElementById('releaseNotes').textContent = '检查更新失败：' + error.message;
+                document.getElementById('canUpdate').textContent = '否';
+                document.getElementById('updateButtons').style.display = 'none';
+                document.getElementById('downloadBtn').disabled = true;
+            });
+        }
+        
+        // 下载更新
+        function downloadUpdate() {
+            if (!currentUpdateInfo) {
+                showResult('downloadResult', '没有可用的更新信息', false);
+                return;
+            }
+            
+            fetch('/advanced-features/downloadUpdate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ version: currentUpdateInfo.version }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('downloadResult', '正在下载更新...', true);
+                    document.getElementById('downloadBtn').disabled = true;
+                    document.getElementById('cancelBtn').disabled = false;
+                } else {
+                    showResult('downloadResult', '下载更新失败：' + data.message, false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('downloadResult', '下载更新失败：' + error.message, false);
+            });
+        }
+        
+        // 安装更新
+        function installUpdate() {
+            fetch('/advanced-features/installUpdate', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('downloadResult', '正在安装更新...', true);
+                    document.getElementById('installBtn').disabled = true;
+                    document.getElementById('cancelBtn').disabled = true;
+                } else {
+                    showResult('downloadResult', '安装更新失败：' + data.message, false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('downloadResult', '安装更新失败：' + error.message, false);
+            });
+        }
+        
+        // 取消更新
+        function cancelUpdate() {
+            fetch('/advanced-features/cancelUpdate', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('downloadResult', '更新已取消', true);
+                    document.getElementById('downloadBtn').disabled = false;
+                    document.getElementById('installBtn').disabled = true;
+                    document.getElementById('cancelBtn').disabled = true;
+                    document.getElementById('progressBar').style.width = '0%';
+                    document.getElementById('progressText').textContent = '0%';
+                } else {
+                    showResult('downloadResult', '取消更新失败：' + data.message, false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('downloadResult', '取消更新失败：' + error.message, false);
+            });
+        }
+        
+        // 获取更新状态
+        function getUpdateStatus() {
+            fetch('/advanced-features/getUpdateStatus', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 更新状态
+                    document.getElementById('updateStatus').textContent = getStatusText(data.status);
+                    
+                    // 更新进度条
+                    const progress = Math.round(data.progress * 100);
+                    document.getElementById('progressBar').style.width = progress + '%';
+                    document.getElementById('progressText').textContent = progress + '%';
+                    
+                    // 更新按钮状态
+                    updateButtonStatus(data.status, progress);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        
+        // 启动状态检查定时器
+        function startStatusCheck() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+            }
+            
+            // 每秒检查一次状态
+            statusCheckInterval = setInterval(getUpdateStatus, 1000);
+        }
+        
+        // 获取状态文本
+        function getStatusText(status) {
+            switch (status) {
+                case 'idle':
+                    return '空闲';
+                case 'checking':
+                    return '检查更新中';
+                case 'downloading':
+                    return '下载更新中';
+                case 'downloaded':
+                    return '更新已下载';
+                case 'installing':
+                    return '安装更新中';
+                default:
+                    return status;
+            }
+        }
+        
+        // 更新按钮状态
+        function updateButtonStatus(status, progress) {
+            switch (status) {
+                case 'idle':
+                    document.getElementById('downloadBtn').disabled = !currentUpdateInfo;
+                    document.getElementById('installBtn').disabled = true;
+                    document.getElementById('cancelBtn').disabled = true;
+                    break;
+                case 'checking':
+                    document.getElementById('downloadBtn').disabled = true;
+                    document.getElementById('installBtn').disabled = true;
+                    document.getElementById('cancelBtn').disabled = true;
+                    break;
+                case 'downloading':
+                    document.getElementById('downloadBtn').disabled = true;
+                    document.getElementById('installBtn').disabled = true;
+                    document.getElementById('cancelBtn').disabled = false;
+                    break;
+                case 'downloaded':
+                    document.getElementById('downloadBtn').disabled = true;
+                    document.getElementById('installBtn').disabled = false;
+                    document.getElementById('cancelBtn').disabled = true;
+                    break;
+                case 'installing':
+                    document.getElementById('downloadBtn').disabled = true;
+                    document.getElementById('installBtn').disabled = true;
+                    document.getElementById('cancelBtn').disabled = true;
+                    break;
+            }
+        }
+        
+        // 显示结果
+        function showResult(elementId, message, success) {
+            const resultElement = document.getElementById(elementId);
+            resultElement.style.display = 'block';
+            resultElement.textContent = message;
+            resultElement.style.color = success ? '#4CAF50' : '#f44336';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>键盘快捷键示例</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>键盘快捷键示例</h1>
+            <div class="nav">
+                <a href="/keyboard/index" class="active">主页</a>
+                <a href="/keyboard/history">历史记录</a>
+                <a href="/keyboard/listener">键盘监听器</a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>注册快捷键</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="accelerator">快捷键组合</label>
+                        <input type="text" id="accelerator" class="form-control" placeholder="例如：CommandOrControl+Shift+K">
+                        <div class="help-text">
+                            <p>支持的修饰键：Command, Control, CommandOrControl, Alt, Option, AltGr, Shift, Super</p>
+                            <p>支持的按键：A-Z, 0-9, F1-F24, 标点符号等</p>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">描述</label>
+                        <input type="text" id="description" class="form-control" placeholder="快捷键的功能描述">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="isGlobal"> 全局快捷键（即使应用程序不在前台也能触发）
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="registerShortcut()">注册快捷键</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>已注册的快捷键</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-danger" onclick="unregisterAllShortcuts()">注销所有快捷键</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3>应用程序快捷键</h3>
+                    {if empty($shortcuts)}
+                    <p>暂无应用程序快捷键</p>
+                    {else}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>快捷键组合</th>
+                                <th>描述</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {volist name="shortcuts" id="shortcut"}
+                            <tr>
+                                <td>{$key}</td>
+                                <td>{$shortcut.accelerator}</td>
+                                <td>{$shortcut.description}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger" onclick="unregisterShortcut('{$key}')">注销</button>
+                                </td>
+                            </tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                    {/if}
+                    
+                    <h3>全局快捷键</h3>
+                    {if empty($globalShortcuts)}
+                    <p>暂无全局快捷键</p>
+                    {else}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>快捷键组合</th>
+                                <th>描述</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {volist name="globalShortcuts" id="shortcut"}
+                            <tr>
+                                <td>{$key}</td>
+                                <td>{$shortcut.accelerator}</td>
+                                <td>{$shortcut.description}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger" onclick="unregisterShortcut('{$key}')">注销</button>
+                                </td>
+                            </tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                    {/if}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>模拟按键</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="key">按键</label>
+                        <input type="text" id="key" class="form-control" placeholder="例如：A">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>修饰键</label>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="modifierShift"> Shift
+                            </label>
+                            <label>
+                                <input type="checkbox" id="modifierControl"> Control
+                            </label>
+                            <label>
+                                <input type="checkbox" id="modifierAlt"> Alt
+                            </label>
+                            <label>
+                                <input type="checkbox" id="modifierMeta"> Meta (Command)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="sendKey()">模拟按键</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>模拟文本输入</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="text">文本</label>
+                        <textarea id="text" class="form-control" placeholder="输入要模拟的文本"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="sendText()">模拟文本输入</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>键盘布局</h2>
+                </div>
+                <div class="card-body">
+                    <pre>{:json_encode($layout, JSON_PRETTY_PRINT)}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 注册快捷键
+        function registerShortcut() {
+            const accelerator = document.getElementById('accelerator').value;
+            const description = document.getElementById('description').value;
+            const isGlobal = document.getElementById('isGlobal').checked;
+            
+            if (!accelerator) {
+                showNotification('错误', '快捷键组合不能为空');
+                return;
+            }
+            
+            fetch('/keyboard/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    accelerator,
+                    description,
+                    is_global: isGlobal,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                    // 刷新页面
+                    location.reload();
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '注册快捷键失败');
+            });
+        }
+        
+        // 注销快捷键
+        function unregisterShortcut(id) {
+            if (!confirm('确定要注销此快捷键吗？')) {
+                return;
+            }
+            
+            fetch('/keyboard/unregister', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                    // 刷新页面
+                    location.reload();
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '注销快捷键失败');
+            });
+        }
+        
+        // 注销所有快捷键
+        function unregisterAllShortcuts() {
+            if (!confirm('确定要注销所有快捷键吗？')) {
+                return;
+            }
+            
+            fetch('/keyboard/unregisterAll', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                    // 刷新页面
+                    location.reload();
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '注销所有快捷键失败');
+            });
+        }
+        
+        // 模拟按键
+        function sendKey() {
+            const key = document.getElementById('key').value;
+            const modifiers = [];
+            
+            if (document.getElementById('modifierShift').checked) {
+                modifiers.push('shift');
+            }
+            
+            if (document.getElementById('modifierControl').checked) {
+                modifiers.push('control');
+            }
+            
+            if (document.getElementById('modifierAlt').checked) {
+                modifiers.push('alt');
+            }
+            
+            if (document.getElementById('modifierMeta').checked) {
+                modifiers.push('meta');
+            }
+            
+            if (!key) {
+                showNotification('错误', '按键不能为空');
+                return;
+            }
+            
+            fetch('/keyboard/sendKey', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    key,
+                    modifiers,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '模拟按键失败');
+            });
+        }
+        
+        // 模拟文本输入
+        function sendText() {
+            const text = document.getElementById('text').value;
+            
+            if (!text) {
+                showNotification('错误', '文本不能为空');
+                return;
+            }
+            
+            fetch('/keyboard/sendText', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '模拟文本输入失败');
+            });
+        }
+        
+        // 显示通知
+        function showNotification(title, body) {
+            if (typeof window.NativePHP !== 'undefined') {
+                window.NativePHP.notification.send(title, body);
+            } else {
+                alert(`${title}: ${body}`);
+            }
+        }
+    </script>
+</body>
+</html>

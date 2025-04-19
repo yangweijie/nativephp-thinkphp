@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{$note.title} - 笔记应用</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <script src="/static/js/markdown.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="note-view">
+            <div class="note-view-header">
+                <a href="/note/index" class="back-link">返回列表</a>
+                <h1>{$note.title}</h1>
+                <div class="note-view-meta">
+                    <span class="note-date">更新于: {:date('Y-m-d H:i', strtotime($note.updated_at))}</span>
+                    {if $note.category}
+                    <span class="note-category">分类: {$note.category.name}</span>
+                    {/if}
+                    <div class="note-tags">
+                        {volist name="note.tags" id="tag"}
+                        <span class="tag">{$tag.name}</span>
+                        {/volist}
+                    </div>
+                </div>
+                <div class="note-view-actions">
+                    <button onclick="editNote({$note.id})">编辑</button>
+                    <button onclick="deleteNote({$note.id})">删除</button>
+                    <button onclick="exportNote({$note.id})">导出</button>
+                </div>
+            </div>
+            
+            <div class="note-view-content" id="noteContent">
+                <!-- Markdown 内容将在这里渲染 -->
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 渲染 Markdown 内容
+        document.addEventListener('DOMContentLoaded', function() {
+            var content = `{$note.content}`;
+            document.getElementById('noteContent').innerHTML = marked(content);
+        });
+    </script>
+</body>
+</html>

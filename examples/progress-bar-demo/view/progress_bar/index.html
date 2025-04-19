@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>进度条示例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #2196F3;
+        }
+        .btn-secondary:hover {
+            background-color: #0b7dda;
+        }
+        .btn-warning {
+            background-color: #ff9800;
+        }
+        .btn-warning:hover {
+            background-color: #e68a00;
+        }
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .log {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>进度条示例</h1>
+        
+        <div class="card">
+            <h2>简介</h2>
+            <p>这个示例展示了如何使用 NativePHP for ThinkPHP 的进度条功能来显示任务进度。</p>
+            <p>你可以尝试不同类型的任务，观察进度条的变化和通知的显示。</p>
+        </div>
+        
+        <div class="card">
+            <h2>基本任务</h2>
+            <div class="form-group">
+                <label for="totalItems">总项目数：</label>
+                <input type="number" id="totalItems" value="100" min="10" max="1000">
+            </div>
+            <div class="form-group">
+                <label for="delay">延迟（毫秒）：</label>
+                <input type="number" id="delay" value="100" min="10" max="1000">
+            </div>
+            <button class="btn" onclick="processTask()">开始任务</button>
+            
+            <div class="progress-container" id="basicProgressContainer">
+                <div class="progress-bar" id="basicProgressBar"></div>
+            </div>
+            <div class="status" id="basicStatus">准备就绪</div>
+        </div>
+        
+        <div class="card">
+            <h2>多阶段任务</h2>
+            <div class="form-group">
+                <label for="stages">阶段数：</label>
+                <input type="number" id="stages" value="3" min="1" max="10">
+            </div>
+            <div class="form-group">
+                <label for="itemsPerStage">每阶段项目数：</label>
+                <input type="number" id="itemsPerStage" value="50" min="10" max="500">
+            </div>
+            <div class="form-group">
+                <label for="stageDelay">延迟（毫秒）：</label>
+                <input type="number" id="stageDelay" value="50" min="10" max="500">
+            </div>
+            <button class="btn btn-secondary" onclick="multiStageTask()">开始多阶段任务</button>
+            
+            <div class="progress-container" id="multiStageProgressContainer">
+                <div class="progress-bar" id="multiStageProgressBar"></div>
+            </div>
+            <div class="status" id="multiStageStatus">准备就绪</div>
+        </div>
+        
+        <div class="card">
+            <h2>文件处理任务</h2>
+            <div class="form-group">
+                <label for="fileSize">文件大小（KB）：</label>
+                <input type="number" id="fileSize" value="1024" min="64" max="10240">
+            </div>
+            <div class="form-group">
+                <label for="chunkSize">块大小（KB）：</label>
+                <input type="number" id="chunkSize" value="64" min="16" max="512">
+            </div>
+            <div class="form-group">
+                <label for="fileDelay">延迟（毫秒）：</label>
+                <input type="number" id="fileDelay" value="100" min="10" max="500">
+            </div>
+            <button class="btn btn-warning" onclick="fileProcessingTask()">开始文件处理</button>
+            
+            <div class="progress-container" id="fileProgressContainer">
+                <div class="progress-bar" id="fileProgressBar"></div>
+            </div>
+            <div class="status" id="fileStatus">准备就绪</div>
+        </div>
+        
+        <div class="card">
+            <h2>日志</h2>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 基本任务处理
+        function processTask() {
+            const totalItems = document.getElementById('totalItems').value;
+            const delay = document.getElementById('delay').value;
+            
+            // 重置进度条
+            resetProgressBar('basicProgressBar', 'basicStatus');
+            
+            // 记录日志
+            logMessage(`开始处理 ${totalItems} 个项目，延迟 ${delay} 毫秒`);
+            
+            // 发送请求
+            fetch('/progress-bar/processTask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    total: totalItems,
+                    delay: delay
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('basicStatus').textContent = data.message;
+                    document.getElementById('basicProgressBar').style.width = '100%';
+                    logMessage(`任务完成: ${data.message}`);
+                } else {
+                    document.getElementById('basicStatus').textContent = '任务失败';
+                    logMessage(`任务失败: ${data.message || '未知错误'}`);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                document.getElementById('basicStatus').textContent = '任务失败';
+                logMessage(`任务失败: ${error.message}`);
+            });
+            
+            // 模拟进度更新
+            simulateProgress('basicProgressBar', totalItems, delay);
+        }
+        
+        // 多阶段任务处理
+        function multiStageTask() {
+            const stages = document.getElementById('stages').value;
+            const itemsPerStage = document.getElementById('itemsPerStage').value;
+            const delay = document.getElementById('stageDelay').value;
+            
+            // 重置进度条
+            resetProgressBar('multiStageProgressBar', 'multiStageStatus');
+            
+            // 记录日志
+            logMessage(`开始多阶段任务: ${stages} 个阶段，每阶段 ${itemsPerStage} 个项目，延迟 ${delay} 毫秒`);
+            
+            // 发送请求
+            fetch('/progress-bar/multiStageTask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    stages: stages,
+                    items_per_stage: itemsPerStage,
+                    delay: delay
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('multiStageStatus').textContent = data.message;
+                    document.getElementById('multiStageProgressBar').style.width = '100%';
+                    logMessage(`多阶段任务完成: ${data.message}`);
+                } else {
+                    document.getElementById('multiStageStatus').textContent = '任务失败';
+                    logMessage(`多阶段任务失败: ${data.message || '未知错误'}`);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                document.getElementById('multiStageStatus').textContent = '任务失败';
+                logMessage(`多阶段任务失败: ${error.message}`);
+            });
+            
+            // 模拟进度更新
+            const totalItems = stages * itemsPerStage;
+            simulateProgress('multiStageProgressBar', totalItems, delay);
+        }
+        
+        // 文件处理任务
+        function fileProcessingTask() {
+            const fileSize = document.getElementById('fileSize').value;
+            const chunkSize = document.getElementById('chunkSize').value;
+            const delay = document.getElementById('fileDelay').value;
+            
+            // 重置进度条
+            resetProgressBar('fileProgressBar', 'fileStatus');
+            
+            // 记录日志
+            logMessage(`开始文件处理任务: 文件大小 ${fileSize} KB，块大小 ${chunkSize} KB，延迟 ${delay} 毫秒`);
+            
+            // 发送请求
+            fetch('/progress-bar/fileProcessingTask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    file_size: fileSize,
+                    chunk_size: chunkSize,
+                    delay: delay
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('fileStatus').textContent = data.message;
+                    document.getElementById('fileProgressBar').style.width = '100%';
+                    logMessage(`文件处理任务完成: ${data.message}`);
+                } else {
+                    document.getElementById('fileStatus').textContent = '任务失败';
+                    logMessage(`文件处理任务失败: ${data.message || '未知错误'}`);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                document.getElementById('fileStatus').textContent = '任务失败';
+                logMessage(`文件处理任务失败: ${error.message}`);
+            });
+            
+            // 模拟进度更新
+            const totalChunks = Math.ceil(fileSize / chunkSize);
+            simulateProgress('fileProgressBar', totalChunks, delay);
+        }
+        
+        // 重置进度条
+        function resetProgressBar(progressBarId, statusId) {
+            document.getElementById(progressBarId).style.width = '0%';
+            document.getElementById(statusId).textContent = '处理中...';
+        }
+        
+        // 模拟进度更新
+        function simulateProgress(progressBarId, totalItems, delay) {
+            const progressBar = document.getElementById(progressBarId);
+            let currentItem = 0;
+            
+            // 清除之前的定时器
+            if (window[`${progressBarId}Timer`]) {
+                clearInterval(window[`${progressBarId}Timer`]);
+            }
+            
+            // 设置新的定时器
+            window[`${progressBarId}Timer`] = setInterval(() => {
+                currentItem++;
+                const percent = Math.min((currentItem / totalItems) * 100, 99); // 最多到99%，等待实际完成
+                progressBar.style.width = `${percent}%`;
+                
+                if (currentItem >= totalItems) {
+                    clearInterval(window[`${progressBarId}Timer`]);
+                }
+            }, delay);
+        }
+        
+        // 记录日志
+        function logMessage(message) {
+            const log = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${time}] ${message}`;
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // 页面加载时记录日志
+        window.onload = function() {
+            logMessage('页面已加载，准备就绪');
+        };
+    </script>
+</body>
+</html>

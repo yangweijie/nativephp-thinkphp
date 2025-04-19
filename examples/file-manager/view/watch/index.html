@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>文件监视设置</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        .watch-settings {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        
+        .setting-group {
+            margin-bottom: 20px;
+        }
+        
+        .setting-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .setting-description {
+            margin-bottom: 15px;
+            color: #666;
+        }
+        
+        .setting-toggle {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin-right: 15px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #4a6cf7;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            font-weight: 600;
+        }
+        
+        .watch-paths {
+            margin-top: 30px;
+        }
+        
+        .path-list {
+            margin-top: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .path-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+        }
+        
+        .path-item:last-child {
+            border-bottom: none;
+        }
+        
+        .path-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .folder-icon {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ffc107"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>');
+        }
+        
+        .path-info {
+            flex: 1;
+        }
+        
+        .path-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .path-details {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .path-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .path-actions button {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        
+        .add-path-form {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .form-row label {
+            margin-right: 10px;
+            font-weight: 600;
+        }
+        
+        .form-row input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        
+        .form-row .checkbox-label {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+        }
+        
+        .form-row .checkbox-label input {
+            margin-right: 5px;
+        }
+        
+        .empty-paths {
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            background-color: #fff;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>文件监视设置</h1>
+            <div class="actions">
+                <a href="/file/index" class="btn">返回文件管理器</a>
+            </div>
+        </div>
+        
+        <div class="watch-settings">
+            <div class="setting-group">
+                <div class="setting-title">监视状态</div>
+                <div class="setting-description">启用或禁用文件监视功能。禁用后，将不会监视任何文件变化。</div>
+                <div class="setting-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="watchEnabled" {$config.enabled ? 'checked' : ''} onchange="toggleWatchEnabled(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label">{$config.enabled ? '已启用' : '已禁用'}</span>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-title">通知设置</div>
+                <div class="setting-description">当监视的文件发生变化时，是否显示系统通知。</div>
+                <div class="setting-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notifyEnabled" {$config.notify ? 'checked' : ''} onchange="toggleNotifyEnabled(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label">{$config.notify ? '已启用' : '已禁用'}</span>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-title">自动刷新</div>
+                <div class="setting-description">当监视的文件发生变化时，是否自动刷新文件列表。</div>
+                <div class="setting-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoRefreshEnabled" {$config.autoRefresh ? 'checked' : ''} onchange="toggleAutoRefreshEnabled(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label">{$config.autoRefresh ? '已启用' : '已禁用'}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="watch-paths">
+            <div class="setting-title">监视路径</div>
+            <div class="setting-description">添加要监视的文件夹路径。当这些文件夹中的文件发生变化时，将触发相应的操作。</div>
+            
+            <div class="add-path-form">
+                <div class="form-row">
+                    <label for="watchPath">路径:</label>
+                    <input type="text" id="watchPath" placeholder="请输入或选择要监视的路径">
+                    <button type="button" onclick="selectWatchPath()" class="btn">浏览...</button>
+                </div>
+                <div class="form-row">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="watchRecursive">
+                        递归监视子目录
+                    </label>
+                    <button type="button" onclick="addWatchPath()" class="btn btn-primary">添加监视路径</button>
+                </div>
+            </div>
+            
+            {if empty($watchPaths)}
+            <div class="empty-paths">
+                <p>暂无监视路径</p>
+                <p>添加要监视的文件夹，当文件发生变化时将收到通知</p>
+            </div>
+            {else}
+            <div class="path-list">
+                {volist name="watchPaths" id="path"}
+                <div class="path-item" data-path="{$path.path}">
+                    <div class="path-icon folder-icon"></div>
+                    <div class="path-info">
+                        <div class="path-name">{:basename($path.path)}</div>
+                        <div class="path-details">
+                            <div>{$path.path}</div>
+                            <div>递归监视: {$path.recursive ? '是' : '否'}</div>
+                            <div>添加时间: {:date('Y-m-d H:i:s', $path.added)}</div>
+                        </div>
+                    </div>
+                    <div class="path-actions">
+                        <button onclick="removeWatchPath('{$path.path}')" class="btn btn-secondary">移除</button>
+                    </div>
+                </div>
+                {/volist}
+            </div>
+            {/if}
+        </div>
+    </div>
+    
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">标题</h2>
+            <div id="modalBody">内容</div>
+            <div id="modalFooter">
+                <button id="modalConfirm" class="btn btn-primary">确定</button>
+                <button id="modalCancel" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 初始化模态框
+        document.addEventListener('DOMContentLoaded', function() {
+            initModal();
+        });
+        
+        // 切换监视状态
+        function toggleWatchEnabled(enabled) {
+            const endpoint = enabled ? '/watch/enable' : '/watch/disable';
+            const label = document.querySelector('#watchEnabled + .toggle-slider + .toggle-label');
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    label.textContent = enabled ? '已启用' : '已禁用';
+                } else {
+                    // 恢复原状态
+                    document.getElementById('watchEnabled').checked = !enabled;
+                    label.textContent = !enabled ? '已启用' : '已禁用';
+                    showNotification('错误', data.message || '操作失败');
+                }
+            })
+            .catch(error => {
+                // 恢复原状态
+                document.getElementById('watchEnabled').checked = !enabled;
+                label.textContent = !enabled ? '已启用' : '已禁用';
+                showNotification('错误', error.message);
+            });
+        }
+        
+        // 切换通知状态
+        function toggleNotifyEnabled(enabled) {
+            const endpoint = enabled ? '/watch/enableNotify' : '/watch/disableNotify';
+            const label = document.querySelector('#notifyEnabled + .toggle-slider + .toggle-label');
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    label.textContent = enabled ? '已启用' : '已禁用';
+                } else {
+                    // 恢复原状态
+                    document.getElementById('notifyEnabled').checked = !enabled;
+                    label.textContent = !enabled ? '已启用' : '已禁用';
+                    showNotification('错误', data.message || '操作失败');
+                }
+            })
+            .catch(error => {
+                // 恢复原状态
+                document.getElementById('notifyEnabled').checked = !enabled;
+                label.textContent = !enabled ? '已启用' : '已禁用';
+                showNotification('错误', error.message);
+            });
+        }
+        
+        // 切换自动刷新状态
+        function toggleAutoRefreshEnabled(enabled) {
+            const endpoint = enabled ? '/watch/enableAutoRefresh' : '/watch/disableAutoRefresh';
+            const label = document.querySelector('#autoRefreshEnabled + .toggle-slider + .toggle-label');
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    label.textContent = enabled ? '已启用' : '已禁用';
+                } else {
+                    // 恢复原状态
+                    document.getElementById('autoRefreshEnabled').checked = !enabled;
+                    label.textContent = !enabled ? '已启用' : '已禁用';
+                    showNotification('错误', data.message || '操作失败');
+                }
+            })
+            .catch(error => {
+                // 恢复原状态
+                document.getElementById('autoRefreshEnabled').checked = !enabled;
+                label.textContent = !enabled ? '已启用' : '已禁用';
+                showNotification('错误', error.message);
+            });
+        }
+        
+        // 选择监视路径
+        function selectWatchPath() {
+            fetch('/file/selectFolder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.folder) {
+                    document.getElementById('watchPath').value = data.folder;
+                }
+            })
+            .catch(error => {
+                showNotification('错误', error.message);
+            });
+        }
+        
+        // 添加监视路径
+        function addWatchPath() {
+            const path = document.getElementById('watchPath').value;
+            const recursive = document.getElementById('watchRecursive').checked;
+            
+            if (!path) {
+                showNotification('错误', '请输入或选择要监视的路径');
+                return;
+            }
+            
+            fetch('/watch/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'path=' + encodeURIComponent(path) + '&recursive=' + (recursive ? '1' : '0'),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    showNotification('错误', data.message || '添加失败');
+                }
+            })
+            .catch(error => {
+                showNotification('错误', error.message);
+            });
+        }
+        
+        // 移除监视路径
+        function removeWatchPath(path) {
+            showModal('移除监视路径', `
+                <p>确定要移除此监视路径吗？</p>
+                <p><strong>${path}</strong></p>
+            `, function() {
+                fetch('/watch/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        showNotification('错误', data.message || '移除失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

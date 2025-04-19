@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>日志查看器</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        .log-container {
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 600px;
+            overflow: auto;
+        }
+        
+        .log-line {
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+        
+        .log-info {
+            color: #4caf50;
+        }
+        
+        .log-warning {
+            color: #ff9800;
+        }
+        
+        .log-error {
+            color: #f44336;
+        }
+        
+        .log-debug {
+            color: #2196f3;
+        }
+        
+        .log-actions {
+            margin-bottom: 15px;
+        }
+        
+        .log-filter {
+            margin-bottom: 15px;
+        }
+        
+        .log-filter select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>日志查看器</h1>
+            <div class="path-navigation">
+                <input type="text" id="logFileInput" value="{$logFile}" readonly>
+            </div>
+            <div class="actions">
+                <a href="/file/index" class="btn">返回文件管理器</a>
+            </div>
+        </div>
+        
+        <div class="log-actions">
+            <a href="/log/clear" class="btn btn-secondary" onclick="return confirm('确定要清除日志吗？')">清除日志</a>
+            <a href="/log/download" class="btn">下载日志</a>
+            <a href="/log/enable" class="btn btn-primary">启用日志</a>
+            <a href="/log/disable" class="btn btn-secondary">禁用日志</a>
+        </div>
+        
+        <div class="log-filter">
+            <form action="/log/index" method="get">
+                <label for="lines">显示行数:</label>
+                <select name="lines" id="lines" onchange="this.form.submit()">
+                    <option value="50" {$lines == 50 ? 'selected' : ''}>50 行</option>
+                    <option value="100" {$lines == 100 ? 'selected' : ''}>100 行</option>
+                    <option value="200" {$lines == 200 ? 'selected' : ''}>200 行</option>
+                    <option value="500" {$lines == 500 ? 'selected' : ''}>500 行</option>
+                    <option value="1000" {$lines == 1000 ? 'selected' : ''}>1000 行</option>
+                    <option value="0" {$lines == 0 ? 'selected' : ''}>全部</option>
+                </select>
+            </form>
+        </div>
+        
+        <div class="log-container">
+            {if empty($logContent)}
+            <div class="log-line">日志为空</div>
+            {else}
+            {volist name="logContent|explode='\n'" id="line"}
+            <div class="log-line {if strpos($line, '[INFO]') !== false}log-info{elseif strpos($line, '[WARNING]') !== false}log-warning{elseif strpos($line, '[ERROR]') !== false}log-error{elseif strpos($line, '[DEBUG]') !== false}log-debug{/if}">{$line}</div>
+            {/volist}
+            {/if}
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

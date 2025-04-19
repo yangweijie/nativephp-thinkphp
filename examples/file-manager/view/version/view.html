@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>查看版本 - {$filename}</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/markdown.min.js"></script>
+    <style>
+        .version-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .version-info {
+            flex: 1;
+        }
+        
+        .version-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .version-meta {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .version-meta-item {
+            margin-bottom: 10px;
+        }
+        
+        .version-meta-label {
+            font-weight: 600;
+            color: #333;
+            display: inline-block;
+            width: 120px;
+        }
+        
+        .version-comment {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        .code-preview {
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 15px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .code-language {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .code-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .code-actions button {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        
+        .code-content {
+            padding: 15px;
+            overflow: auto;
+            max-height: 600px;
+            background-color: #fff;
+        }
+        
+        .code-content pre {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .code-content code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            padding: 15px 10px;
+            background-color: #f5f5f5;
+            border-right: 1px solid #ddd;
+            text-align: right;
+            color: #999;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>查看版本 - {$filename}</h1>
+            <div class="actions">
+                <a href="/version/index?path={:urlencode($path)}" class="btn">返回版本历史</a>
+                <a href="/file/view?path={:urlencode($path)}" class="btn">查看当前文件</a>
+            </div>
+        </div>
+        
+        <div class="version-header">
+            <div class="version-info">
+                <h2>版本信息</h2>
+            </div>
+            <div class="version-actions">
+                <button onclick="restoreVersion()" class="btn btn-primary">恢复此版本</button>
+                <button onclick="deleteVersion()" class="btn btn-secondary">删除此版本</button>
+            </div>
+        </div>
+        
+        <div class="version-meta">
+            <div class="version-meta-item">
+                <span class="version-meta-label">创建时间:</span>
+                <span>{:date('Y-m-d H:i:s', $version.created)}</span>
+            </div>
+            <div class="version-meta-item">
+                <span class="version-meta-label">文件大小:</span>
+                <span>{:format_size($version.size)}</span>
+            </div>
+            <div class="version-meta-item">
+                <span class="version-meta-label">版本ID:</span>
+                <span>{$version.id}</span>
+            </div>
+            {if $version.comment}
+            <div class="version-comment">
+                <strong>注释:</strong> {$version.comment}
+            </div>
+            {/if}
+        </div>
+        
+        <div class="code-preview">
+            <div class="code-header">
+                <div class="code-language">{$extension}</div>
+                <div class="code-actions">
+                    <button onclick="copyCode()">复制代码</button>
+                    <button onclick="toggleLineNumbers()">显示/隐藏行号</button>
+                </div>
+            </div>
+            <div class="code-content" id="codeContent">
+                <pre><code class="language-{$extension == 'htm' ? 'html' : $extension}">{:htmlentities($content)}</code></pre>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化代码高亮
+            if (document.querySelector('.language-{$extension}')) {
+                hljs.highlightAll();
+            }
+        });
+        
+        // 复制代码到剪贴板
+        function copyCode() {
+            const codeElement = document.querySelector('.code-content code');
+            if (codeElement) {
+                const text = codeElement.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    showNotification('复制成功', '代码已复制到剪贴板');
+                }).catch(err => {
+                    showNotification('复制失败', err.message);
+                });
+            }
+        }
+        
+        // 显示/隐藏行号
+        function toggleLineNumbers() {
+            const codeContent = document.getElementById('codeContent');
+            const existingLineNumbers = document.querySelector('.line-numbers');
+            
+            if (existingLineNumbers) {
+                existingLineNumbers.remove();
+                codeContent.style.paddingLeft = '15px';
+            } else {
+                const code = codeContent.querySelector('code');
+                const lineCount = code.innerHTML.split('\n').length;
+                const lineNumbers = document.createElement('div');
+                lineNumbers.className = 'line-numbers';
+                
+                let numbers = '';
+                for (let i = 1; i <= lineCount; i++) {
+                    numbers += i + '<br>';
+                }
+                
+                lineNumbers.innerHTML = numbers;
+                codeContent.style.paddingLeft = '50px';
+                codeContent.appendChild(lineNumbers);
+            }
+        }
+        
+        // 恢复版本
+        function restoreVersion() {
+            showModal('恢复版本', `
+                <p>确定要将文件恢复到此版本吗？</p>
+                <p>当前文件内容将被覆盖，但会自动创建一个备份。</p>
+            `, function() {
+                const path = '{$path}';
+                const versionId = '{$version.id}';
+                
+                fetch('/version/restore', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path) + '&version=' + encodeURIComponent(versionId),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('成功', '文件已恢复到此版本');
+                        window.location.href = '/file/view?path=' + encodeURIComponent(path);
+                    } else {
+                        showNotification('错误', data.message || '恢复版本失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            });
+        }
+        
+        // 删除版本
+        function deleteVersion() {
+            showModal('删除版本', `
+                <p>确定要删除此版本吗？</p>
+                <p>此操作不可撤销。</p>
+            `, function() {
+                const path = '{$path}';
+                const versionId = '{$version.id}';
+                
+                fetch('/version/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path) + '&version=' + encodeURIComponent(versionId),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('成功', '版本已删除');
+                        window.location.href = '/version/index?path=' + encodeURIComponent(path);
+                    } else {
+                        showNotification('错误', data.message || '删除版本失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

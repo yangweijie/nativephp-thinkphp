@@ -1,0 +1,300 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 头部样式 */
+.header {
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.window-info {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.window-info p {
+    margin-bottom: 5px;
+}
+
+.window-info p:last-child {
+    margin-bottom: 0;
+}
+
+/* 内容区样式 */
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 卡片样式 */
+.card {
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e1e1e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+/* 表单样式 */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -10px;
+    margin-left: -10px;
+}
+
+.form-row > .form-group {
+    padding-right: 10px;
+    padding-left: 10px;
+    flex: 0 0 100%;
+}
+
+.col-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.col-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.input-group {
+    display: flex;
+}
+
+.input-group .form-control {
+    flex: 1;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.checkbox-group label {
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 按钮样式 */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 5px;
+}
+
+/* 表格样式 */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e1e1e1;
+}
+
+.table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+/* 消息列表样式 */
+.message-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message-item {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 10px;
+    border-left: 3px solid #3498db;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #777;
+}
+
+.message-content {
+    white-space: pre-wrap;
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .header h1 {
+        font-size: 20px;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .card-actions {
+        width: 100%;
+    }
+    
+    .form-row > .form-group {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    .btn-group {
+        flex-wrap: wrap;
+    }
+}

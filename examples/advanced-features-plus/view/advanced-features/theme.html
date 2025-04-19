@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>主题</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color, #f5f5f5);
+            color: var(--text-color, #333);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-background, white);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: var(--heading-color, #333);
+            text-align: center;
+        }
+        h2 {
+            color: var(--heading-color, #555);
+            margin-top: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input[type="color"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: var(--input-background, white);
+            color: var(--text-color, #333);
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: var(--primary-color, #4CAF50);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: var(--primary-hover-color, #45a049);
+        }
+        button.secondary {
+            background-color: var(--secondary-color, #2196F3);
+        }
+        button.secondary:hover {
+            background-color: var(--secondary-hover-color, #0b7dda);
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: var(--result-background, #f0f0f0);
+            border-radius: 4px;
+            display: none;
+        }
+        .theme-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .theme-card {
+            width: calc(33.33% - 10px);
+            padding: 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            box-sizing: border-box;
+        }
+        .theme-card:hover {
+            transform: translateY(-5px);
+        }
+        .theme-card.active {
+            border: 2px solid var(--primary-color, #4CAF50);
+        }
+        .theme-card h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .theme-card-light {
+            background-color: #ffffff;
+            color: #333333;
+            border: 1px solid #dddddd;
+        }
+        .theme-card-dark {
+            background-color: #333333;
+            color: #ffffff;
+            border: 1px solid #555555;
+        }
+        .theme-card-blue {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            border: 1px solid #bbdefb;
+        }
+        .theme-card-green {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #c8e6c9;
+        }
+        .theme-card-purple {
+            background-color: #f3e5f5;
+            color: #4a148c;
+            border: 1px solid #e1bee7;
+        }
+        .theme-card-custom {
+            background-color: var(--custom-background, #f5f5f5);
+            color: var(--custom-text, #333333);
+            border: 1px solid var(--custom-border, #dddddd);
+        }
+        .color-picker-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .color-picker-label {
+            width: 150px;
+            margin-right: 10px;
+        }
+        .color-picker {
+            width: 50px;
+            height: 30px;
+            padding: 0;
+            border: 1px solid var(--border-color, #ddd);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>主题</h1>
+        
+        <div class="section">
+            <h2>当前主题</h2>
+            <div class="result" style="display: block;">
+                <div>当前主题：<span id="currentTheme">{$currentTheme}</span></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>预设主题</h2>
+            <div class="theme-preview">
+                <div class="theme-card theme-card-light {if $currentTheme == 'light'}active{/if}" onclick="selectTheme('light')">
+                    <h3>浅色主题</h3>
+                    <p>默认的浅色主题，适合日间使用。</p>
+                </div>
+                <div class="theme-card theme-card-dark {if $currentTheme == 'dark'}active{/if}" onclick="selectTheme('dark')">
+                    <h3>深色主题</h3>
+                    <p>深色主题，适合夜间使用，减少眼睛疲劳。</p>
+                </div>
+                <div class="theme-card theme-card-blue {if $currentTheme == 'blue'}active{/if}" onclick="selectTheme('blue')">
+                    <h3>蓝色主题</h3>
+                    <p>蓝色调主题，给人冷静、专业的感觉。</p>
+                </div>
+                <div class="theme-card theme-card-green {if $currentTheme == 'green'}active{/if}" onclick="selectTheme('green')">
+                    <h3>绿色主题</h3>
+                    <p>绿色调主题，给人自然、和谐的感觉。</p>
+                </div>
+                <div class="theme-card theme-card-purple {if $currentTheme == 'purple'}active{/if}" onclick="selectTheme('purple')">
+                    <h3>紫色主题</h3>
+                    <p>紫色调主题，给人创意、神秘的感觉。</p>
+                </div>
+                <div class="theme-card theme-card-custom {if $currentTheme == 'custom'}active{/if}" onclick="selectTheme('custom')">
+                    <h3>自定义主题</h3>
+                    <p>自定义颜色的主题，根据个人喜好设置。</p>
+                </div>
+            </div>
+            <div class="button-group">
+                <button id="applyThemeBtn" onclick="applyTheme()">应用主题</button>
+            </div>
+            <div id="themeResult" class="result"></div>
+        </div>
+        
+        <div class="section" id="customThemeSection" style="display: none;">
+            <h2>自定义主题</h2>
+            <div class="form-group">
+                <div class="color-picker-group">
+                    <span class="color-picker-label">背景颜色：</span>
+                    <input type="color" id="backgroundColor" class="color-picker" value="#f5f5f5">
+                </div>
+                <div class="color-picker-group">
+                    <span class="color-picker-label">文本颜色：</span>
+                    <input type="color" id="textColor" class="color-picker" value="#333333">
+                </div>
+                <div class="color-picker-group">
+                    <span class="color-picker-label">卡片背景：</span>
+                    <input type="color" id="cardBackground" class="color-picker" value="#ffffff">
+                </div>
+                <div class="color-picker-group">
+                    <span class="color-picker-label">边框颜色：</span>
+                    <input type="color" id="borderColor" class="color-picker" value="#dddddd">
+                </div>
+                <div class="color-picker-group">
+                    <span class="color-picker-label">主要颜色：</span>
+                    <input type="color" id="primaryColor" class="color-picker" value="#4CAF50">
+                </div>
+                <div class="color-picker-group">
+                    <span class="color-picker-label">次要颜色：</span>
+                    <input type="color" id="secondaryColor" class="color-picker" value="#2196F3">
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="previewCustomTheme()">预览</button>
+                <button onclick="saveCustomTheme()">保存</button>
+                <button class="secondary" onclick="resetCustomTheme()">重置</button>
+            </div>
+            <div id="customThemeResult" class="result"></div>
+        </div>
+        
+        <div class="section">
+            <h2>主题配置</h2>
+            <div class="form-group">
+                <label for="themeMode">主题模式</label>
+                <select id="themeMode">
+                    <option value="light">浅色</option>
+                    <option value="dark">深色</option>
+                    <option value="system">跟随系统</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="themeAutoSwitch">自动切换主题</label>
+                <select id="themeAutoSwitch">
+                    <option value="0">关闭</option>
+                    <option value="1">开启</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button onclick="saveThemeConfig()">保存配置</button>
+            </div>
+            <div id="configResult" class="result"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 当前选中的主题
+        let selectedTheme = '{$currentTheme}';
+        
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            // 初始化主题模式
+            document.getElementById('themeMode').value = '{$themeConfig.mode|default="light"}';
+            
+            // 初始化自动切换主题
+            document.getElementById('themeAutoSwitch').value = '{$themeConfig.autoSwitch|default="0"}';
+            
+            // 如果当前主题是自定义主题，显示自定义主题区域
+            if (selectedTheme === 'custom') {
+                document.getElementById('customThemeSection').style.display = 'block';
+                
+                // 初始化自定义主题颜色
+                if ('{$themeConfig.custom}') {
+                    const customTheme = JSON.parse('{$themeConfig.custom|json_encode}');
+                    document.getElementById('backgroundColor').value = customTheme.backgroundColor || '#f5f5f5';
+                    document.getElementById('textColor').value = customTheme.textColor || '#333333';
+                    document.getElementById('cardBackground').value = customTheme.cardBackground || '#ffffff';
+                    document.getElementById('borderColor').value = customTheme.borderColor || '#dddddd';
+                    document.getElementById('primaryColor').value = customTheme.primaryColor || '#4CAF50';
+                    document.getElementById('secondaryColor').value = customTheme.secondaryColor || '#2196F3';
+                }
+            }
+            
+            // 应用当前主题的 CSS 变量
+            applyThemeVariables();
+        });
+        
+        // 选择主题
+        function selectTheme(theme) {
+            // 移除所有主题卡片的 active 类
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // 添加 active 类到选中的主题卡片
+            document.querySelector(`.theme-card-${theme}`).classList.add('active');
+            
+            // 更新选中的主题
+            selectedTheme = theme;
+            
+            // 如果选中的是自定义主题，显示自定义主题区域
+            document.getElementById('customThemeSection').style.display = theme === 'custom' ? 'block' : 'none';
+        }
+        
+        // 应用主题
+        function applyTheme() {
+            fetch('/advanced-features/switchTheme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ theme: selectedTheme }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultElement = document.getElementById('themeResult');
+                resultElement.style.display = 'block';
+                
+                if (data.success) {
+                    resultElement.textContent = '主题已应用，页面将在 3 秒后刷新...';
+                    resultElement.style.color = 'var(--success-color, #4CAF50)';
+                    
+                    // 更新当前主题
+                    document.getElementById('currentTheme').textContent = selectedTheme;
+                    
+                    // 3 秒后刷新页面
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    resultElement.textContent = '应用主题失败：' + data.message;
+                    resultElement.style.color = 'var(--error-color, #f44336)';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const resultElement = document.getElementById('themeResult');
+                resultElement.style.display = 'block';
+                resultElement.textContent = '应用主题失败：' + error.message;
+                resultElement.style.color = 'var(--error-color, #f44336)';
+            });
+        }
+        
+        // 预览自定义主题
+        function previewCustomTheme() {
+            // 获取自定义主题颜色
+            const backgroundColor = document.getElementById('backgroundColor').value;
+            const textColor = document.getElementById('textColor').value;
+            const cardBackground = document.getElementById('cardBackground').value;
+            const borderColor = document.getElementById('borderColor').value;
+            const primaryColor = document.getElementById('primaryColor').value;
+            const secondaryColor = document.getElementById('secondaryColor').value;
+            
+            // 应用 CSS 变量
+            document.documentElement.style.setProperty('--background-color', backgroundColor);
+            document.documentElement.style.setProperty('--text-color', textColor);
+            document.documentElement.style.setProperty('--card-background', cardBackground);
+            document.documentElement.style.setProperty('--border-color', borderColor);
+            document.documentElement.style.setProperty('--primary-color', primaryColor);
+            document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+            document.documentElement.style.setProperty('--heading-color', textColor);
+            document.documentElement.style.setProperty('--input-background', cardBackground);
+            document.documentElement.style.setProperty('--result-background', backgroundColor);
+            document.documentElement.style.setProperty('--primary-hover-color', adjustColor(primaryColor, -20));
+            document.documentElement.style.setProperty('--secondary-hover-color', adjustColor(secondaryColor, -20));
+            
+            // 更新自定义主题卡片
+            const customCard = document.querySelector('.theme-card-custom');
+            customCard.style.backgroundColor = backgroundColor;
+            customCard.style.color = textColor;
+            customCard.style.borderColor = borderColor;
+            
+            // 显示结果
+            const resultElement = document.getElementById('customThemeResult');
+            resultElement.style.display = 'block';
+            resultElement.textContent = '自定义主题已预览';
+            resultElement.style.color = 'var(--success-color, #4CAF50)';
+        }
+        
+        // 保存自定义主题
+        function saveCustomTheme() {
+            // 获取自定义主题颜色
+            const backgroundColor = document.getElementById('backgroundColor').value;
+            const textColor = document.getElementById('textColor').value;
+            const cardBackground = document.getElementById('cardBackground').value;
+            const borderColor = document.getElementById('borderColor').value;
+            const primaryColor = document.getElementById('primaryColor').value;
+            const secondaryColor = document.getElementById('secondaryColor').value;
+            
+            // 构建自定义主题配置
+            const customTheme = {
+                backgroundColor,
+                textColor,
+                cardBackground,
+                borderColor,
+                primaryColor,
+                secondaryColor,
+            };
+            
+            // 保存自定义主题配置
+            fetch('/advanced-features/saveThemeConfig', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    config: {
+                        custom: customTheme,
+                    },
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultElement = document.getElementById('customThemeResult');
+                resultElement.style.display = 'block';
+                
+                if (data.success) {
+                    resultElement.textContent = '自定义主题已保存';
+                    resultElement.style.color = 'var(--success-color, #4CAF50)';
+                } else {
+                    resultElement.textContent = '保存自定义主题失败：' + data.message;
+                    resultElement.style.color = 'var(--error-color, #f44336)';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const resultElement = document.getElementById('customThemeResult');
+                resultElement.style.display = 'block';
+                resultElement.textContent = '保存自定义主题失败：' + error.message;
+                resultElement.style.color = 'var(--error-color, #f44336)';
+            });
+        }
+        
+        // 重置自定义主题
+        function resetCustomTheme() {
+            // 重置自定义主题颜色
+            document.getElementById('backgroundColor').value = '#f5f5f5';
+            document.getElementById('textColor').value = '#333333';
+            document.getElementById('cardBackground').value = '#ffffff';
+            document.getElementById('borderColor').value = '#dddddd';
+            document.getElementById('primaryColor').value = '#4CAF50';
+            document.getElementById('secondaryColor').value = '#2196F3';
+            
+            // 预览重置后的主题
+            previewCustomTheme();
+        }
+        
+        // 保存主题配置
+        function saveThemeConfig() {
+            // 获取主题配置
+            const mode = document.getElementById('themeMode').value;
+            const autoSwitch = document.getElementById('themeAutoSwitch').value;
+            
+            // 保存主题配置
+            fetch('/advanced-features/saveThemeConfig', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    config: {
+                        mode,
+                        autoSwitch,
+                    },
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultElement = document.getElementById('configResult');
+                resultElement.style.display = 'block';
+                
+                if (data.success) {
+                    resultElement.textContent = '主题配置已保存';
+                    resultElement.style.color = 'var(--success-color, #4CAF50)';
+                } else {
+                    resultElement.textContent = '保存主题配置失败：' + data.message;
+                    resultElement.style.color = 'var(--error-color, #f44336)';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const resultElement = document.getElementById('configResult');
+                resultElement.style.display = 'block';
+                resultElement.textContent = '保存主题配置失败：' + error.message;
+                resultElement.style.color = 'var(--error-color, #f44336)';
+            });
+        }
+        
+        // 应用主题 CSS 变量
+        function applyThemeVariables() {
+            // 根据当前主题应用 CSS 变量
+            switch ('{$currentTheme}') {
+                case 'light':
+                    document.documentElement.style.setProperty('--background-color', '#f5f5f5');
+                    document.documentElement.style.setProperty('--text-color', '#333333');
+                    document.documentElement.style.setProperty('--card-background', '#ffffff');
+                    document.documentElement.style.setProperty('--border-color', '#dddddd');
+                    document.documentElement.style.setProperty('--heading-color', '#333333');
+                    document.documentElement.style.setProperty('--primary-color', '#4CAF50');
+                    document.documentElement.style.setProperty('--primary-hover-color', '#45a049');
+                    document.documentElement.style.setProperty('--secondary-color', '#2196F3');
+                    document.documentElement.style.setProperty('--secondary-hover-color', '#0b7dda');
+                    document.documentElement.style.setProperty('--input-background', '#ffffff');
+                    document.documentElement.style.setProperty('--result-background', '#f0f0f0');
+                    document.documentElement.style.setProperty('--success-color', '#4CAF50');
+                    document.documentElement.style.setProperty('--error-color', '#f44336');
+                    break;
+                case 'dark':
+                    document.documentElement.style.setProperty('--background-color', '#333333');
+                    document.documentElement.style.setProperty('--text-color', '#ffffff');
+                    document.documentElement.style.setProperty('--card-background', '#424242');
+                    document.documentElement.style.setProperty('--border-color', '#555555');
+                    document.documentElement.style.setProperty('--heading-color', '#ffffff');
+                    document.documentElement.style.setProperty('--primary-color', '#4CAF50');
+                    document.documentElement.style.setProperty('--primary-hover-color', '#45a049');
+                    document.documentElement.style.setProperty('--secondary-color', '#2196F3');
+                    document.documentElement.style.setProperty('--secondary-hover-color', '#0b7dda');
+                    document.documentElement.style.setProperty('--input-background', '#616161');
+                    document.documentElement.style.setProperty('--result-background', '#424242');
+                    document.documentElement.style.setProperty('--success-color', '#4CAF50');
+                    document.documentElement.style.setProperty('--error-color', '#f44336');
+                    break;
+                case 'blue':
+                    document.documentElement.style.setProperty('--background-color', '#e3f2fd');
+                    document.documentElement.style.setProperty('--text-color', '#0d47a1');
+                    document.documentElement.style.setProperty('--card-background', '#ffffff');
+                    document.documentElement.style.setProperty('--border-color', '#bbdefb');
+                    document.documentElement.style.setProperty('--heading-color', '#0d47a1');
+                    document.documentElement.style.setProperty('--primary-color', '#2196F3');
+                    document.documentElement.style.setProperty('--primary-hover-color', '#0b7dda');
+                    document.documentElement.style.setProperty('--secondary-color', '#4CAF50');
+                    document.documentElement.style.setProperty('--secondary-hover-color', '#45a049');
+                    document.documentElement.style.setProperty('--input-background', '#ffffff');
+                    document.documentElement.style.setProperty('--result-background', '#e3f2fd');
+                    document.documentElement.style.setProperty('--success-color', '#4CAF50');
+                    document.documentElement.style.setProperty('--error-color', '#f44336');
+                    break;
+                case 'green':
+                    document.documentElement.style.setProperty('--background-color', '#e8f5e9');
+                    document.documentElement.style.setProperty('--text-color', '#1b5e20');
+                    document.documentElement.style.setProperty('--card-background', '#ffffff');
+                    document.documentElement.style.setProperty('--border-color', '#c8e6c9');
+                    document.documentElement.style.setProperty('--heading-color', '#1b5e20');
+                    document.documentElement.style.setProperty('--primary-color', '#4CAF50');
+                    document.documentElement.style.setProperty('--primary-hover-color', '#45a049');
+                    document.documentElement.style.setProperty('--secondary-color', '#2196F3');
+                    document.documentElement.style.setProperty('--secondary-hover-color', '#0b7dda');
+                    document.documentElement.style.setProperty('--input-background', '#ffffff');
+                    document.documentElement.style.setProperty('--result-background', '#e8f5e9');
+                    document.documentElement.style.setProperty('--success-color', '#4CAF50');
+                    document.documentElement.style.setProperty('--error-color', '#f44336');
+                    break;
+                case 'purple':
+                    document.documentElement.style.setProperty('--background-color', '#f3e5f5');
+                    document.documentElement.style.setProperty('--text-color', '#4a148c');
+                    document.documentElement.style.setProperty('--card-background', '#ffffff');
+                    document.documentElement.style.setProperty('--border-color', '#e1bee7');
+                    document.documentElement.style.setProperty('--heading-color', '#4a148c');
+                    document.documentElement.style.setProperty('--primary-color', '#9c27b0');
+                    document.documentElement.style.setProperty('--primary-hover-color', '#7b1fa2');
+                    document.documentElement.style.setProperty('--secondary-color', '#2196F3');
+                    document.documentElement.style.setProperty('--secondary-hover-color', '#0b7dda');
+                    document.documentElement.style.setProperty('--input-background', '#ffffff');
+                    document.documentElement.style.setProperty('--result-background', '#f3e5f5');
+                    document.documentElement.style.setProperty('--success-color', '#4CAF50');
+                    document.documentElement.style.setProperty('--error-color', '#f44336');
+                    break;
+                case 'custom':
+                    // 如果有自定义主题配置，应用它
+                    if ('{$themeConfig.custom}') {
+                        const customTheme = JSON.parse('{$themeConfig.custom|json_encode}');
+                        document.documentElement.style.setProperty('--background-color', customTheme.backgroundColor || '#f5f5f5');
+                        document.documentElement.style.setProperty('--text-color', customTheme.textColor || '#333333');
+                        document.documentElement.style.setProperty('--card-background', customTheme.cardBackground || '#ffffff');
+                        document.documentElement.style.setProperty('--border-color', customTheme.borderColor || '#dddddd');
+                        document.documentElement.style.setProperty('--heading-color', customTheme.textColor || '#333333');
+                        document.documentElement.style.setProperty('--primary-color', customTheme.primaryColor || '#4CAF50');
+                        document.documentElement.style.setProperty('--primary-hover-color', adjustColor(customTheme.primaryColor || '#4CAF50', -20));
+                        document.documentElement.style.setProperty('--secondary-color', customTheme.secondaryColor || '#2196F3');
+                        document.documentElement.style.setProperty('--secondary-hover-color', adjustColor(customTheme.secondaryColor || '#2196F3', -20));
+                        document.documentElement.style.setProperty('--input-background', customTheme.cardBackground || '#ffffff');
+                        document.documentElement.style.setProperty('--result-background', customTheme.backgroundColor || '#f5f5f5');
+                        document.documentElement.style.setProperty('--success-color', '#4CAF50');
+                        document.documentElement.style.setProperty('--error-color', '#f44336');
+                    }
+                    break;
+            }
+        }
+        
+        // 调整颜色亮度
+        function adjustColor(color, amount) {
+            // 将颜色转换为 RGB
+            let r = parseInt(color.substring(1, 3), 16);
+            let g = parseInt(color.substring(3, 5), 16);
+            let b = parseInt(color.substring(5, 7), 16);
+            
+            // 调整亮度
+            r = Math.max(0, Math.min(255, r + amount));
+            g = Math.max(0, Math.min(255, g + amount));
+            b = Math.max(0, Math.min(255, b + amount));
+            
+            // 转换回十六进制
+            return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+    </script>
+</body>
+</html>

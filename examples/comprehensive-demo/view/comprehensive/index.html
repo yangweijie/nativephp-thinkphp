@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>综合示例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #2196F3;
+        }
+        .btn-secondary:hover {
+            background-color: #0b7dda;
+        }
+        .btn-warning {
+            background-color: #ff9800;
+        }
+        .btn-warning:hover {
+            background-color: #e68a00;
+        }
+        .btn-danger {
+            background-color: #f44336;
+        }
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        .btn-info {
+            background-color: #00bcd4;
+        }
+        .btn-info:hover {
+            background-color: #008ba3;
+        }
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .progress-label {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .progress-description {
+            margin-bottom: 20px;
+            color: #666;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-bottom: -1px;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-color: #ddd;
+            border-bottom-color: #fff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .log {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+            font-family: monospace;
+        }
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        .result-container {
+            margin-top: 20px;
+            display: none;
+        }
+        .result-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .result-content {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>综合示例</h1>
+        
+        <div class="card">
+            <h2>简介</h2>
+            <p>这个示例展示了如何组合使用 NativePHP for ThinkPHP 的多个功能来构建复杂的桌面应用。</p>
+            <p>你可以选择不同类型的任务，查看它们如何利用广播系统、子进程管理、队列工作器、进度条、Shell命令执行和开发者工具等功能协同工作。</p>
+        </div>
+        
+        <div class="card">
+            <h2>任务选择</h2>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('file-processing-tab')">文件处理</div>
+                <div class="tab" onclick="switchTab('data-import-tab')">数据导入</div>
+                <div class="tab" onclick="switchTab('system-monitoring-tab')">系统监控</div>
+            </div>
+            
+            <div class="tab-content active" id="file-processing-tab">
+                <div class="form-group">
+                    <label for="source-dir">源目录：</label>
+                    <input type="text" id="source-dir" placeholder="例如：runtime/temp">
+                </div>
+                <div class="form-group">
+                    <label for="target-dir">目标目录：</label>
+                    <input type="text" id="target-dir" placeholder="例如：runtime/processed">
+                </div>
+                <div class="form-group">
+                    <label for="file-type">文件类型：</label>
+                    <select id="file-type">
+                        <option value="txt">文本文件 (txt)</option>
+                        <option value="csv">CSV文件 (csv)</option>
+                        <option value="json">JSON文件 (json)</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="executeTask('file_processing')">执行文件处理任务</button>
+            </div>
+            
+            <div class="tab-content" id="data-import-tab">
+                <div class="form-group">
+                    <label for="data-source">数据源：</label>
+                    <select id="data-source">
+                        <option value="csv">CSV文件</option>
+                        <option value="json">JSON文件</option>
+                        <option value="xml">XML文件</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="batch-size">批次大小：</label>
+                    <input type="number" id="batch-size" value="100" min="10" max="1000">
+                </div>
+                <div class="form-group">
+                    <label for="total-records">总记录数：</label>
+                    <input type="number" id="total-records" value="1000" min="100" max="10000">
+                </div>
+                <button class="btn btn-secondary" onclick="executeTask('data_import')">执行数据导入任务</button>
+            </div>
+            
+            <div class="tab-content" id="system-monitoring-tab">
+                <div class="form-group">
+                    <label for="duration">监控持续时间（秒）：</label>
+                    <input type="number" id="duration" value="30" min="10" max="300">
+                </div>
+                <div class="form-group">
+                    <label for="interval">监控间隔（秒）：</label>
+                    <input type="number" id="interval" value="5" min="1" max="30">
+                </div>
+                <button class="btn btn-warning" onclick="executeTask('system_monitoring')">执行系统监控任务</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>任务进度</h2>
+            <div class="progress-label" id="progress-label">准备就绪</div>
+            <div class="progress-description" id="progress-description">请选择一个任务并点击执行按钮</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h2>实时数据</h2>
+                <div class="chart-container" id="chart-container">
+                    <p>任务执行后将显示实时数据图表</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>日志</h2>
+                <div class="log" id="log"></div>
+            </div>
+        </div>
+        
+        <div class="card result-container" id="result-container">
+            <h2>任务结果</h2>
+            <div class="result-title" id="result-title">任务尚未完成</div>
+            <div class="result-content" id="result-content"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let taskRunning = false;
+        let progressInterval = null;
+        let chartData = [];
+        let chart = null;
+        
+        // 切换标签页
+        function switchTab(tabId) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 取消所有标签的激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(tabId).classList.add('active');
+            
+            // 激活选中的标签
+            const tabIndex = ['file-processing-tab', 'data-import-tab', 'system-monitoring-tab'].indexOf(tabId);
+            document.querySelectorAll('.tab')[tabIndex].classList.add('active');
+        }
+        
+        // 执行任务
+        function executeTask(taskType) {
+            if (taskRunning) {
+                alert('任务正在执行中，请等待当前任务完成');
+                return;
+            }
+            
+            // 获取任务参数
+            let taskParams = {};
+            
+            switch (taskType) {
+                case 'file_processing':
+                    taskParams = {
+                        source_dir: document.getElementById('source-dir').value,
+                        target_dir: document.getElementById('target-dir').value,
+                        file_type: document.getElementById('file-type').value
+                    };
+                    break;
+                    
+                case 'data_import':
+                    taskParams = {
+                        data_source: document.getElementById('data-source').value,
+                        batch_size: document.getElementById('batch-size').value,
+                        total_records: document.getElementById('total-records').value
+                    };
+                    break;
+                    
+                case 'system_monitoring':
+                    taskParams = {
+                        duration: document.getElementById('duration').value,
+                        interval: document.getElementById('interval').value
+                    };
+                    break;
+            }
+            
+            // 重置进度条和结果
+            resetUI();
+            
+            // 设置任务状态
+            taskRunning = true;
+            
+            // 记录日志
+            logMessage(`开始执行${getTaskTypeName(taskType)}任务`);
+            logMessage(`任务参数: ${JSON.stringify(taskParams)}`);
+            
+            // 更新进度条标签
+            document.getElementById('progress-label').textContent = `${getTaskTypeName(taskType)}任务`;
+            document.getElementById('progress-description').textContent = '正在准备任务...';
+            
+            // 启动进度条动画
+            startProgressAnimation();
+            
+            // 设置图表
+            setupChart(taskType);
+            
+            // 监听广播事件
+            listenBroadcastEvents(taskType);
+            
+            // 发送任务请求
+            fetch('/comprehensive/executeTask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    task_type: taskType,
+                    task_params: taskParams
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 停止进度条动画
+                stopProgressAnimation();
+                
+                // 设置任务状态
+                taskRunning = false;
+                
+                // 更新进度条
+                document.getElementById('progress-bar').style.width = '100%';
+                
+                if (data.success) {
+                    // 更新进度条标签
+                    document.getElementById('progress-label').textContent = `${getTaskTypeName(taskType)}任务完成`;
+                    document.getElementById('progress-description').textContent = '任务已成功执行';
+                    
+                    // 记录日志
+                    logMessage(`任务执行成功: ${data.message}`);
+                    
+                    // 显示结果
+                    showResult(`${getTaskTypeName(taskType)}任务结果`, data.result);
+                } else {
+                    // 更新进度条标签
+                    document.getElementById('progress-label').textContent = `${getTaskTypeName(taskType)}任务失败`;
+                    document.getElementById('progress-description').textContent = data.message;
+                    
+                    // 记录日志
+                    logMessage(`任务执行失败: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                // 停止进度条动画
+                stopProgressAnimation();
+                
+                // 设置任务状态
+                taskRunning = false;
+                
+                // 更新进度条标签
+                document.getElementById('progress-label').textContent = `${getTaskTypeName(taskType)}任务错误`;
+                document.getElementById('progress-description').textContent = '执行任务时发生错误';
+                
+                // 记录日志
+                logMessage(`任务执行错误: ${error.message}`);
+                console.error('错误:', error);
+            });
+        }
+        
+        // 获取任务类型名称
+        function getTaskTypeName(taskType) {
+            switch (taskType) {
+                case 'file_processing':
+                    return '文件处理';
+                case 'data_import':
+                    return '数据导入';
+                case 'system_monitoring':
+                    return '系统监控';
+                default:
+                    return '未知';
+            }
+        }
+        
+        // 重置UI
+        function resetUI() {
+            // 重置进度条
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('progress-label').textContent = '准备就绪';
+            document.getElementById('progress-description').textContent = '正在准备任务...';
+            
+            // 重置结果
+            document.getElementById('result-container').style.display = 'none';
+            document.getElementById('result-title').textContent = '任务尚未完成';
+            document.getElementById('result-content').innerHTML = '';
+            
+            // 重置图表
+            document.getElementById('chart-container').innerHTML = '<p>任务执行中将显示实时数据图表</p>';
+            chartData = [];
+            chart = null;
+        }
+        
+        // 启动进度条动画
+        function startProgressAnimation() {
+            let progress = 0;
+            
+            progressInterval = setInterval(() => {
+                if (progress < 90) {
+                    progress += 0.5;
+                    document.getElementById('progress-bar').style.width = `${progress}%`;
+                }
+            }, 200);
+        }
+        
+        // 停止进度条动画
+        function stopProgressAnimation() {
+            clearInterval(progressInterval);
+        }
+        
+        // 设置图表
+        function setupChart(taskType) {
+            const chartContainer = document.getElementById('chart-container');
+            chartContainer.innerHTML = '';
+            
+            // 创建图表画布
+            const canvas = document.createElement('canvas');
+            canvas.id = 'chart';
+            canvas.width = chartContainer.clientWidth;
+            canvas.height = chartContainer.clientHeight;
+            chartContainer.appendChild(canvas);
+            
+            // 初始化图表数据
+            chartData = [];
+            
+            // 根据任务类型设置图表
+            switch (taskType) {
+                case 'file_processing':
+                    // 文件处理进度图表
+                    setupFileProcessingChart();
+                    break;
+                    
+                case 'data_import':
+                    // 数据导入进度图表
+                    setupDataImportChart();
+                    break;
+                    
+                case 'system_monitoring':
+                    // 系统监控图表
+                    setupSystemMonitoringChart();
+                    break;
+            }
+        }
+        
+        // 设置文件处理图表
+        function setupFileProcessingChart() {
+            const ctx = document.getElementById('chart').getContext('2d');
+            
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['已处理文件'],
+                    datasets: [{
+                        label: '已处理',
+                        data: [0],
+                        backgroundColor: '#4CAF50'
+                    }, {
+                        label: '未处理',
+                        data: [0],
+                        backgroundColor: '#f1f1f1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 设置数据导入图表
+        function setupDataImportChart() {
+            const ctx = document.getElementById('chart').getContext('2d');
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '导入进度',
+                        data: [],
+                        borderColor: '#2196F3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 设置系统监控图表
+        function setupSystemMonitoringChart() {
+            const ctx = document.getElementById('chart').getContext('2d');
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'CPU使用率 (%)',
+                        data: [],
+                        borderColor: '#f44336',
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                        fill: false
+                    }, {
+                        label: '内存使用率 (%)',
+                        data: [],
+                        borderColor: '#2196F3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        fill: false
+                    }, {
+                        label: '磁盘使用率 (%)',
+                        data: [],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 监听广播事件
+        function listenBroadcastEvents(taskType) {
+            // 模拟接收广播事件
+            // 在实际应用中，这里应该使用WebSocket或其他实时通信方式
+            
+            // 根据任务类型设置模拟事件
+            switch (taskType) {
+                case 'file_processing':
+                    simulateFileProcessingEvents();
+                    break;
+                    
+                case 'data_import':
+                    simulateDataImportEvents();
+                    break;
+                    
+                case 'system_monitoring':
+                    simulateSystemMonitoringEvents();
+                    break;
+            }
+        }
+        
+        // 模拟文件处理事件
+        function simulateFileProcessingEvents() {
+            // 模拟进程启动事件
+            setTimeout(() => {
+                updateFileProcessingChart(0, 10);
+                document.getElementById('progress-description').textContent = '正在启动文件处理进程...';
+                logMessage('文件处理进程已启动');
+            }, 1000);
+            
+            // 模拟处理进度事件
+            let processed = 0;
+            const total = 10;
+            
+            const progressInterval = setInterval(() => {
+                if (!taskRunning) {
+                    clearInterval(progressInterval);
+                    return;
+                }
+                
+                processed++;
+                
+                if (processed <= total) {
+                    updateFileProcessingChart(processed, total);
+                    document.getElementById('progress-description').textContent = `已处理 ${processed}/${total} 个文件...`;
+                    logMessage(`已处理文件 ${processed}/${total}`);
+                }
+                
+                if (processed >= total) {
+                    clearInterval(progressInterval);
+                }
+            }, 2000);
+        }
+        
+        // 更新文件处理图表
+        function updateFileProcessingChart(processed, total) {
+            if (chart) {
+                chart.data.datasets[0].data = [processed];
+                chart.data.datasets[1].data = [total - processed];
+                chart.update();
+            }
+        }
+        
+        // 模拟数据导入事件
+        function simulateDataImportEvents() {
+            // 模拟导入开始事件
+            setTimeout(() => {
+                document.getElementById('progress-description').textContent = '正在准备数据导入...';
+                logMessage('数据导入任务已开始');
+            }, 1000);
+            
+            // 模拟导入进度事件
+            const totalRecords = parseInt(document.getElementById('total-records').value);
+            const batchSize = parseInt(document.getElementById('batch-size').value);
+            const batches = Math.ceil(totalRecords / batchSize);
+            
+            let currentBatch = 0;
+            let importedRecords = 0;
+            
+            const importInterval = setInterval(() => {
+                if (!taskRunning) {
+                    clearInterval(importInterval);
+                    return;
+                }
+                
+                currentBatch++;
+                
+                if (currentBatch <= batches) {
+                    // 计算当前批次的记录数
+                    const currentBatchSize = Math.min(batchSize, totalRecords - importedRecords);
+                    importedRecords += currentBatchSize;
+                    
+                    // 计算进度百分比
+                    const percent = Math.round((importedRecords / totalRecords) * 100);
+                    
+                    // 更新图表
+                    updateDataImportChart(currentBatch, percent);
+                    
+                    // 更新进度描述
+                    document.getElementById('progress-description').textContent = `已导入 ${importedRecords}/${totalRecords} 条记录 (${percent}%)...`;
+                    
+                    // 记录日志
+                    logMessage(`已导入批次 ${currentBatch}/${batches}，总进度: ${percent}%`);
+                }
+                
+                if (currentBatch >= batches) {
+                    clearInterval(importInterval);
+                }
+            }, 1500);
+        }
+        
+        // 更新数据导入图表
+        function updateDataImportChart(batch, percent) {
+            if (chart) {
+                chart.data.labels.push(`批次 ${batch}`);
+                chart.data.datasets[0].data.push(percent);
+                
+                // 限制显示的数据点数量
+                if (chart.data.labels.length > 10) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                }
+                
+                chart.update();
+            }
+        }
+        
+        // 模拟系统监控事件
+        function simulateSystemMonitoringEvents() {
+            // 模拟监控开始事件
+            setTimeout(() => {
+                document.getElementById('progress-description').textContent = '正在开始系统监控...';
+                logMessage('系统监控任务已开始');
+            }, 1000);
+            
+            // 模拟监控数据事件
+            const duration = parseInt(document.getElementById('duration').value);
+            const interval = parseInt(document.getElementById('interval').value);
+            const count = Math.ceil(duration / interval);
+            
+            let current = 0;
+            
+            const monitorInterval = setInterval(() => {
+                if (!taskRunning) {
+                    clearInterval(monitorInterval);
+                    return;
+                }
+                
+                current++;
+                
+                if (current <= count) {
+                    // 生成模拟数据
+                    const timestamp = new Date().toLocaleTimeString();
+                    const cpuUsage = Math.round(Math.random() * 50 + 10); // 10-60%
+                    const memoryUsage = Math.round(Math.random() * 30 + 40); // 40-70%
+                    const diskUsage = Math.round(Math.random() * 10 + 60); // 60-70%
+                    
+                    // 更新图表
+                    updateSystemMonitoringChart(timestamp, cpuUsage, memoryUsage, diskUsage);
+                    
+                    // 更新进度描述
+                    document.getElementById('progress-description').textContent = `系统监控中... (${current}/${count})`;
+                    
+                    // 记录日志
+                    logMessage(`监控数据 #${current}: CPU=${cpuUsage}%, 内存=${memoryUsage}%, 磁盘=${diskUsage}%`);
+                }
+                
+                if (current >= count) {
+                    clearInterval(monitorInterval);
+                }
+            }, interval * 1000);
+        }
+        
+        // 更新系统监控图表
+        function updateSystemMonitoringChart(timestamp, cpuUsage, memoryUsage, diskUsage) {
+            if (chart) {
+                chart.data.labels.push(timestamp);
+                chart.data.datasets[0].data.push(cpuUsage);
+                chart.data.datasets[1].data.push(memoryUsage);
+                chart.data.datasets[2].data.push(diskUsage);
+                
+                // 限制显示的数据点数量
+                if (chart.data.labels.length > 10) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                    chart.data.datasets[1].data.shift();
+                    chart.data.datasets[2].data.shift();
+                }
+                
+                chart.update();
+            }
+        }
+        
+        // 显示结果
+        function showResult(title, result) {
+            document.getElementById('result-container').style.display = 'block';
+            document.getElementById('result-title').textContent = title;
+            
+            // 格式化结果
+            let formattedResult = '';
+            
+            if (typeof result === 'object') {
+                formattedResult = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            } else {
+                formattedResult = result;
+            }
+            
+            document.getElementById('result-content').innerHTML = formattedResult;
+        }
+        
+        // 记录日志
+        function logMessage(message) {
+            const log = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${time}] ${message}`;
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // 页面加载时记录日志
+        window.onload = function() {
+            logMessage('页面已加载，准备就绪');
+            
+            // 加载Chart.js库
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+            script.onload = function() {
+                logMessage('图表库已加载');
+            };
+            document.head.appendChild(script);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>全局快捷键</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-top: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #d32f2f;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            display: none;
+        }
+        .shortcut-list {
+            margin-top: 20px;
+        }
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .shortcut-item:last-child {
+            border-bottom: none;
+        }
+        .shortcut {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .shortcut-action {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>全局快捷键</h1>
+        
+        <div class="section">
+            <h2>注册快捷键</h2>
+            <div class="form-group">
+                <label for="accelerator">快捷键</label>
+                <input type="text" id="accelerator" placeholder="例如：CommandOrControl+Shift+A">
+                <small>提示：可以使用 CommandOrControl、Alt、Shift、Option、Meta 等修饰键，用 + 连接</small>
+            </div>
+            <div class="form-group">
+                <label for="action">操作</label>
+                <select id="action">
+                    <option value="notification">显示通知</option>
+                    <option value="clipboard">复制文本到剪贴板</option>
+                    <option value="screenshot">捕获屏幕截图</option>
+                    <option value="quit">退出应用</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button onclick="registerShortcut()">注册快捷键</button>
+            </div>
+            <div id="registerResult" class="result"></div>
+        </div>
+        
+        <div class="section">
+            <h2>注销快捷键</h2>
+            <div class="form-group">
+                <label for="unregisterAccelerator">快捷键</label>
+                <input type="text" id="unregisterAccelerator" placeholder="例如：CommandOrControl+Shift+A">
+            </div>
+            <div class="button-group">
+                <button class="secondary" onclick="unregisterShortcut()">注销快捷键</button>
+                <button class="danger" onclick="unregisterAllShortcuts()">注销所有快捷键</button>
+            </div>
+            <div id="unregisterResult" class="result"></div>
+        </div>
+        
+        <div class="section">
+            <h2>已注册的快捷键</h2>
+            <p>以下是应用启动时注册的全局快捷键：</p>
+            <div class="shortcut-list">
+                <div class="shortcut-item">
+                    <span class="shortcut">Ctrl+Shift+T</span>
+                    <span class="shortcut-action">显示系统托盘页面</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut">Ctrl+Shift+S</span>
+                    <span class="shortcut-action">显示全局快捷键页面</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut">Ctrl+Shift+C</span>
+                    <span class="shortcut-action">显示剪贴板页面</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut">Ctrl+Shift+P</span>
+                    <span class="shortcut-action">显示屏幕捕获页面</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut">Ctrl+Shift+U</span>
+                    <span class="shortcut-action">显示自动更新页面</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut">Ctrl+Shift+Q</span>
+                    <span class="shortcut-action">退出应用</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 注册快捷键
+        function registerShortcut() {
+            const accelerator = document.getElementById('accelerator').value;
+            const action = document.getElementById('action').value;
+            
+            if (!accelerator) {
+                showResult('registerResult', '快捷键不能为空', false);
+                return;
+            }
+            
+            fetch('/advanced-features/registerShortcut', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ accelerator, action }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('registerResult', '快捷键已注册', true);
+                    
+                    // 添加到已注册快捷键列表
+                    const shortcutList = document.querySelector('.shortcut-list');
+                    const shortcutItem = document.createElement('div');
+                    shortcutItem.className = 'shortcut-item';
+                    shortcutItem.innerHTML = `
+                        <span class="shortcut">${accelerator}</span>
+                        <span class="shortcut-action">${getActionName(action)}</span>
+                    `;
+                    shortcutList.appendChild(shortcutItem);
+                    
+                    // 清空输入框
+                    document.getElementById('accelerator').value = '';
+                } else {
+                    showResult('registerResult', '注册快捷键失败：' + data.message, false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('registerResult', '注册快捷键失败：' + error.message, false);
+            });
+        }
+        
+        // 注销快捷键
+        function unregisterShortcut() {
+            const accelerator = document.getElementById('unregisterAccelerator').value;
+            
+            if (!accelerator) {
+                showResult('unregisterResult', '快捷键不能为空', false);
+                return;
+            }
+            
+            fetch('/advanced-features/unregisterShortcut', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ accelerator }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('unregisterResult', '快捷键已注销', true);
+                    
+                    // 清空输入框
+                    document.getElementById('unregisterAccelerator').value = '';
+                    
+                    // 从列表中移除
+                    const shortcutItems = document.querySelectorAll('.shortcut-item');
+                    shortcutItems.forEach(item => {
+                        const shortcutText = item.querySelector('.shortcut').textContent;
+                        if (shortcutText === accelerator) {
+                            item.remove();
+                        }
+                    });
+                } else {
+                    showResult('unregisterResult', '注销快捷键失败：' + data.message, false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('unregisterResult', '注销快捷键失败：' + error.message, false);
+            });
+        }
+        
+        // 注销所有快捷键
+        function unregisterAllShortcuts() {
+            fetch('/advanced-features/unregisterAllShortcuts', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult('unregisterResult', '所有快捷键已注销', true);
+                    
+                    // 清空列表
+                    const shortcutList = document.querySelector('.shortcut-list');
+                    shortcutList.innerHTML = '';
+                } else {
+                    showResult('unregisterResult', '注销所有快捷键失败：' + data.message, false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showResult('unregisterResult', '注销所有快捷键失败：' + error.message, false);
+            });
+        }
+        
+        // 显示结果
+        function showResult(elementId, message, success) {
+            const resultElement = document.getElementById(elementId);
+            resultElement.style.display = 'block';
+            resultElement.textContent = message;
+            resultElement.style.color = success ? '#4CAF50' : '#f44336';
+        }
+        
+        // 获取操作名称
+        function getActionName(action) {
+            switch (action) {
+                case 'notification':
+                    return '显示通知';
+                case 'clipboard':
+                    return '复制文本到剪贴板';
+                case 'screenshot':
+                    return '捕获屏幕截图';
+                case 'quit':
+                    return '退出应用';
+                default:
+                    return action;
+            }
+        }
+    </script>
+</body>
+</html>

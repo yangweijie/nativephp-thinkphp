@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>笔记应用</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>笔记应用</h2>
+                <button onclick="createNote()">新建笔记</button>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索笔记..." onkeyup="searchNotes()">
+            </div>
+            
+            <div class="categories">
+                <h3>分类</h3>
+                <ul>
+                    <li class="{$currentCategory == 0 ? 'active' : ''}">
+                        <a href="/note/index">全部笔记</a>
+                    </li>
+                    {volist name="categories" id="category"}
+                    <li class="{$currentCategory == $category.id ? 'active' : ''}">
+                        <a href="/note/index?category_id={$category.id}">{$category.name}</a>
+                    </li>
+                    {/volist}
+                    <li class="add-category">
+                        <a href="javascript:void(0)" onclick="createCategory()">+ 添加分类</a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="tags">
+                <h3>标签</h3>
+                <div class="tag-list">
+                    {volist name="tags" id="tag"}
+                    <span class="tag {$currentTag == $tag.name ? 'active' : ''}">
+                        <a href="/note/index?tag={$tag.name}">{$tag.name}</a>
+                    </span>
+                    {/volist}
+                    <span class="tag add-tag">
+                        <a href="javascript:void(0)" onclick="createTag()">+</a>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button onclick="backup()">备份</button>
+                <button onclick="restore()">恢复</button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="note-list">
+                <div class="note-list-header">
+                    <h3>笔记列表</h3>
+                    <span>{:count($notes)} 个笔记</span>
+                </div>
+                
+                <div class="notes">
+                    {volist name="notes" id="note"}
+                    <div class="note-item" onclick="viewNote({$note.id})">
+                        <div class="note-title">{$note.title}</div>
+                        <div class="note-preview">{:mb_substr(strip_tags($note.content), 0, 100)}</div>
+                        <div class="note-meta">
+                            <span class="note-date">{:date('Y-m-d H:i', strtotime($note.updated_at))}</span>
+                            {if $note.category}
+                            <span class="note-category">{$note.category.name}</span>
+                            {/if}
+                            <div class="note-tags">
+                                {volist name="note.tags" id="tag"}
+                                <span class="tag">{$tag.name}</span>
+                                {/volist}
+                            </div>
+                        </div>
+                        <div class="note-actions">
+                            <button onclick="event.stopPropagation(); editNote({$note.id})">编辑</button>
+                            <button onclick="event.stopPropagation(); deleteNote({$note.id})">删除</button>
+                            <button onclick="event.stopPropagation(); exportNote({$note.id})">导出</button>
+                        </div>
+                    </div>
+                    {/volist}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>安全存储示例</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-top: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>安全存储示例</h1>
+        
+        <div class="section">
+            <h2><span class="feature-icon">🔄</span> 数据库同步</h2>
+            <p>数据库同步功能允许你的应用在本地数据库和远程数据库之间同步数据。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/secure-storage/database', '数据库同步')">打开数据库同步页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2><span class="feature-icon">📱</span> 离线存储</h2>
+            <p>离线存储功能允许你的应用在没有网络连接时存储数据，并在网络恢复后同步到服务器。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/secure-storage/offline', '离线存储')">打开离线存储页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2><span class="feature-icon">🔒</span> 安全存储</h2>
+            <p>安全存储功能允许你的应用安全地存储敏感数据，如密码、令牌和个人信息。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/secure-storage/secure', '安全存储')">打开安全存储页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2><span class="feature-icon">🔐</span> 加密</h2>
+            <p>加密功能允许你的应用加密和解密数据，保护敏感信息不被未授权访问。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/secure-storage/encryption', '加密')">打开加密页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2><span class="feature-icon">📝</span> 日志</h2>
+            <p>日志功能允许你的应用记录活动和错误，帮助调试和审计。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/secure-storage/logging', '日志')">打开日志页面</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 打开窗口
+        function openWindow(url, title) {
+            if (typeof window.NativePHP !== 'undefined') {
+                window.NativePHP.window.open(url, {
+                    title: title,
+                    width: 800,
+                    height: 600,
+                });
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>剪贴板</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-top: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #d32f2f;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        .clipboard-content {
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>剪贴板</h1>
+        
+        <div class="section">
+            <h2>文本</h2>
+            <div class="form-group">
+                <label for="clipboardText">剪贴板文本</label>
+                <textarea id="clipboardText" placeholder="在这里输入要复制到剪贴板的文本"></textarea>
+            </div>
+            <div class="button-group">
+                <button onclick="readClipboardText()">读取剪贴板文本</button>
+                <button onclick="writeClipboardText()">写入文本到剪贴板</button>
+            </div>
+            <div class="result">
+                <h3>剪贴板内容</h3>
+                <div id="textResult" class="clipboard-content">尚未读取剪贴板内容</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>HTML</h2>
+            <div class="form-group">
+                <label for="clipboardHtml">剪贴板 HTML</label>
+                <textarea id="clipboardHtml" placeholder="在这里输入要复制到剪贴板的 HTML"><b>这是粗体文本</b><br><i>这是斜体文本</i><br><u>这是下划线文本</u></textarea>
+            </div>
+            <div class="button-group">
+                <button onclick="readClipboardHtml()">读取剪贴板 HTML</button>
+                <button onclick="writeClipboardHtml()">写入 HTML 到剪贴板</button>
+            </div>
+            <div class="result">
+                <h3>剪贴板内容</h3>
+                <div id="htmlResult" class="clipboard-content">尚未读取剪贴板内容</div>
+                <h3>HTML 预览</h3>
+                <div id="htmlPreview"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>图片</h2>
+            <div class="form-group">
+                <label for="clipboardImage">剪贴板图片路径</label>
+                <input type="text" id="clipboardImage" placeholder="输入图片路径，例如：/static/images/logo.png">
+            </div>
+            <div class="button-group">
+                <button onclick="readClipboardImage()">读取剪贴板图片</button>
+                <button onclick="writeClipboardImage()">写入图片到剪贴板</button>
+            </div>
+            <div class="result">
+                <h3>剪贴板图片</h3>
+                <div id="imageResult">尚未读取剪贴板图片</div>
+                <img id="imagePreview" class="image-preview" style="display: none;">
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>清空剪贴板</h2>
+            <div class="button-group">
+                <button class="danger" onclick="clearClipboard()">清空剪贴板</button>
+            </div>
+            <div id="clearResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 读取剪贴板文本
+        function readClipboardText() {
+            fetch('/advanced-features/readClipboardText', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('textResult').textContent = data.text || '(空)';
+                } else {
+                    document.getElementById('textResult').textContent = '读取剪贴板文本失败：' + data.message;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('textResult').textContent = '读取剪贴板文本失败：' + error.message;
+            });
+        }
+        
+        // 写入文本到剪贴板
+        function writeClipboardText() {
+            const text = document.getElementById('clipboardText').value;
+            
+            if (!text) {
+                alert('请输入要复制到剪贴板的文本');
+                return;
+            }
+            
+            fetch('/advanced-features/writeClipboardText', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('textResult').textContent = text;
+                    alert('文本已复制到剪贴板');
+                } else {
+                    alert('写入文本到剪贴板失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('写入文本到剪贴板失败：' + error.message);
+            });
+        }
+        
+        // 读取剪贴板 HTML
+        function readClipboardHtml() {
+            fetch('/advanced-features/readClipboardHtml', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('htmlResult').textContent = data.html || '(空)';
+                    document.getElementById('htmlPreview').innerHTML = data.html || '';
+                } else {
+                    document.getElementById('htmlResult').textContent = '读取剪贴板 HTML 失败：' + data.message;
+                    document.getElementById('htmlPreview').innerHTML = '';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('htmlResult').textContent = '读取剪贴板 HTML 失败：' + error.message;
+                document.getElementById('htmlPreview').innerHTML = '';
+            });
+        }
+        
+        // 写入 HTML 到剪贴板
+        function writeClipboardHtml() {
+            const html = document.getElementById('clipboardHtml').value;
+            
+            if (!html) {
+                alert('请输入要复制到剪贴板的 HTML');
+                return;
+            }
+            
+            fetch('/advanced-features/writeClipboardHtml', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ html }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('htmlResult').textContent = html;
+                    document.getElementById('htmlPreview').innerHTML = html;
+                    alert('HTML 已复制到剪贴板');
+                } else {
+                    alert('写入 HTML 到剪贴板失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('写入 HTML 到剪贴板失败：' + error.message);
+            });
+        }
+        
+        // 读取剪贴板图片
+        function readClipboardImage() {
+            fetch('/advanced-features/readClipboardImage', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.image) {
+                    document.getElementById('imageResult').textContent = '剪贴板包含图片';
+                    document.getElementById('imagePreview').src = data.image;
+                    document.getElementById('imagePreview').style.display = 'block';
+                } else {
+                    document.getElementById('imageResult').textContent = '剪贴板不包含图片';
+                    document.getElementById('imagePreview').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('imageResult').textContent = '读取剪贴板图片失败：' + error.message;
+                document.getElementById('imagePreview').style.display = 'none';
+            });
+        }
+        
+        // 写入图片到剪贴板
+        function writeClipboardImage() {
+            const path = document.getElementById('clipboardImage').value;
+            
+            if (!path) {
+                alert('请输入图片路径');
+                return;
+            }
+            
+            fetch('/advanced-features/writeClipboardImage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ path }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('imageResult').textContent = '图片已复制到剪贴板';
+                    document.getElementById('imagePreview').src = path;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    alert('图片已复制到剪贴板');
+                } else {
+                    alert('写入图片到剪贴板失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('写入图片到剪贴板失败：' + error.message);
+            });
+        }
+        
+        // 清空剪贴板
+        function clearClipboard() {
+            fetch('/advanced-features/clearClipboard', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultElement = document.getElementById('clearResult');
+                resultElement.style.display = 'block';
+                
+                if (data.success) {
+                    resultElement.textContent = '剪贴板已清空';
+                    resultElement.style.color = '#4CAF50';
+                    
+                    // 清空显示
+                    document.getElementById('textResult').textContent = '(空)';
+                    document.getElementById('htmlResult').textContent = '(空)';
+                    document.getElementById('htmlPreview').innerHTML = '';
+                    document.getElementById('imageResult').textContent = '剪贴板不包含图片';
+                    document.getElementById('imagePreview').style.display = 'none';
+                } else {
+                    resultElement.textContent = '清空剪贴板失败：' + data.message;
+                    resultElement.style.color = '#f44336';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const resultElement = document.getElementById('clearResult');
+                resultElement.style.display = 'block';
+                resultElement.textContent = '清空剪贴板失败：' + error.message;
+                resultElement.style.color = '#f44336';
+            });
+        }
+    </script>
+</body>
+</html>

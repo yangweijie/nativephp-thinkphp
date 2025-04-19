@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>设置</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>设置</h1>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Dock 设置</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="badgeText">徽章文本</label>
+                        <input type="text" id="badgeText" class="form-control" value="{$settings.badge ?? ''}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="badgeCount">徽章计数</label>
+                        <input type="number" id="badgeCount" class="form-control" value="{$settings.badge_count ?? 0}" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="toolTip">工具提示文本</label>
+                        <input type="text" id="toolTip" class="form-control" value="{$settings.tooltip ?? 'NativePHP Dock 示例'}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 保存设置
+        function saveSettings() {
+            const badge = document.getElementById('badgeText').value;
+            const count = document.getElementById('badgeCount').value;
+            const tooltip = document.getElementById('toolTip').value;
+            
+            // 设置徽章文本
+            fetch('/dock/setBadge', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    badge,
+                }),
+            });
+            
+            // 设置徽章计数
+            fetch('/dock/setBadgeCount', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    count,
+                }),
+            });
+            
+            // 设置工具提示
+            fetch('/dock/setToolTip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tooltip,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', '设置保存成功');
+                    // 关闭窗口
+                    if (typeof window.NativePHP !== 'undefined') {
+                        window.NativePHP.window.close();
+                    }
+                } else {
+                    showNotification('错误', '设置保存失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '设置保存失败');
+            });
+        }
+        
+        // 显示通知
+        function showNotification(title, body) {
+            if (typeof window.NativePHP !== 'undefined') {
+                window.NativePHP.notification.send(title, body);
+            } else {
+                alert(`${title}: ${body}`);
+            }
+        }
+    </script>
+</body>
+</html>

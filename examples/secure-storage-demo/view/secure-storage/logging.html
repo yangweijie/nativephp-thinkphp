@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>日志</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-top: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #d32f2f;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        .info-item {
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 150px;
+        }
+        .log-viewer {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .log-entry.debug {
+            background-color: #e3f2fd;
+        }
+        .log-entry.info {
+            background-color: #e8f5e9;
+        }
+        .log-entry.notice {
+            background-color: #fffde7;
+        }
+        .log-entry.warning {
+            background-color: #fff3e0;
+        }
+        .log-entry.error {
+            background-color: #ffebee;
+        }
+        .log-entry.critical {
+            background-color: #ffcdd2;
+        }
+        .log-entry.alert {
+            background-color: #f8bbd0;
+        }
+        .log-entry.emergency {
+            background-color: #e1bee7;
+        }
+        .log-level {
+            font-weight: bold;
+        }
+        .log-level.debug {
+            color: #2196F3;
+        }
+        .log-level.info {
+            color: #4CAF50;
+        }
+        .log-level.notice {
+            color: #FFC107;
+        }
+        .log-level.warning {
+            color: #FF9800;
+        }
+        .log-level.error {
+            color: #F44336;
+        }
+        .log-level.critical {
+            color: #E91E63;
+        }
+        .log-level.alert {
+            color: #9C27B0;
+        }
+        .log-level.emergency {
+            color: #673AB7;
+        }
+        .log-time {
+            color: #757575;
+            margin-right: 10px;
+        }
+        .log-message {
+            color: #212121;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>日志</h1>
+        
+        <div class="section">
+            <h2>日志信息</h2>
+            <div class="result">
+                <div class="info-item">
+                    <span class="info-label">日志文件：</span>
+                    <span>{$logFile}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">文件大小：</span>
+                    <span>{$logSize|format_bytes}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>日志操作</h2>
+            <div class="form-group">
+                <label for="logLevel">日志级别</label>
+                <select id="logLevel">
+                    <option value="debug">调试 (Debug)</option>
+                    <option value="info">信息 (Info)</option>
+                    <option value="notice">通知 (Notice)</option>
+                    <option value="warning">警告 (Warning)</option>
+                    <option value="error">错误 (Error)</option>
+                    <option value="critical">严重错误 (Critical)</option>
+                    <option value="alert">警报 (Alert)</option>
+                    <option value="emergency">紧急情况 (Emergency)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="logMessage">日志消息</label>
+                <input type="text" id="logMessage" placeholder="输入日志消息">
+            </div>
+            <div class="form-group">
+                <label for="logContext">上下文 (JSON)</label>
+                <textarea id="logContext" placeholder='{"key": "value"}'></textarea>
+            </div>
+            <div class="button-group">
+                <button onclick="writeLog()">写入日志</button>
+                <button class="secondary" onclick="refreshLog()">刷新日志</button>
+                <button class="danger" onclick="clearLog()">清空日志</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>日志轮换</h2>
+            <div class="form-group">
+                <label for="maxSize">最大大小 (字节)</label>
+                <input type="number" id="maxSize" value="10485760">
+            </div>
+            <div class="form-group">
+                <label for="maxFiles">最大文件数</label>
+                <input type="number" id="maxFiles" value="5">
+            </div>
+            <div class="button-group">
+                <button onclick="rotateLog()">轮换日志</button>
+            </div>
+            <div id="rotateResult" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>日志查看器</h2>
+            <div class="form-group">
+                <label for="logLines">显示行数</label>
+                <input type="number" id="logLines" value="100">
+            </div>
+            <div class="button-group">
+                <button class="secondary" onclick="getLogContent()">获取日志</button>
+            </div>
+            <div id="logViewer" class="log-viewer">{$logContent}</div>
+        </div>
+    </div>
+    
+    <script>
+        // 写入日志
+        function writeLog() {
+            const level = document.getElementById('logLevel').value;
+            const message = document.getElementById('logMessage').value;
+            let context = {};
+            
+            try {
+                const contextText = document.getElementById('logContext').value;
+                if (contextText) {
+                    context = JSON.parse(contextText);
+                }
+            } catch (error) {
+                alert('上下文必须是有效的 JSON');
+                return;
+            }
+            
+            if (!message) {
+                alert('日志消息不能为空');
+                return;
+            }
+            
+            // 使用 NativePHP 的 Logger 功能
+            if (typeof window.NativePHP !== 'undefined' && window.NativePHP.logger) {
+                window.NativePHP.logger[level](message, context)
+                    .then(() => {
+                        alert('日志已写入');
+                        refreshLog();
+                    })
+                    .catch(error => {
+                        alert('写入日志失败：' + error.message);
+                    });
+            } else {
+                // 如果不在 NativePHP 环境中，使用 AJAX 请求
+                fetch('/secure-storage/writeLog', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        level,
+                        message,
+                        context,
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('日志已写入');
+                        refreshLog();
+                    } else {
+                        alert('写入日志失败：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('写入日志失败：' + error.message);
+                });
+            }
+        }
+        
+        // 刷新日志
+        function refreshLog() {
+            const lines = document.getElementById('logLines').value;
+            
+            getLogContent(lines);
+        }
+        
+        // 获取日志内容
+        function getLogContent() {
+            const lines = document.getElementById('logLines').value;
+            
+            fetch('/secure-storage/getLogContent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ lines }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const logViewer = document.getElementById('logViewer');
+                    
+                    // 格式化日志内容
+                    logViewer.innerHTML = formatLogContent(data.logContent);
+                    
+                    // 滚动到底部
+                    logViewer.scrollTop = logViewer.scrollHeight;
+                } else {
+                    alert('获取日志内容失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('获取日志内容失败：' + error.message);
+            });
+        }
+        
+        // 清空日志
+        function clearLog() {
+            if (!confirm('确定要清空日志吗？')) {
+                return;
+            }
+            
+            fetch('/secure-storage/clearLog', {
+                method: 'POST',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('日志已清空');
+                    refreshLog();
+                } else {
+                    alert('清空日志失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('清空日志失败：' + error.message);
+            });
+        }
+        
+        // 轮换日志
+        function rotateLog() {
+            const maxSize = document.getElementById('maxSize').value;
+            const maxFiles = document.getElementById('maxFiles').value;
+            
+            fetch('/secure-storage/rotateLog', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    maxSize,
+                    maxFiles,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultElement = document.getElementById('rotateResult');
+                resultElement.style.display = 'block';
+                
+                if (data.success) {
+                    resultElement.textContent = '日志已轮换';
+                    resultElement.style.color = '#4CAF50';
+                    refreshLog();
+                } else {
+                    resultElement.textContent = '轮换日志失败：' + data.message;
+                    resultElement.style.color = '#f44336';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const resultElement = document.getElementById('rotateResult');
+                resultElement.style.display = 'block';
+                resultElement.textContent = '轮换日志失败：' + error.message;
+                resultElement.style.color = '#f44336';
+            });
+        }
+        
+        // 格式化日志内容
+        function formatLogContent(content) {
+            if (!content) {
+                return '<div class="log-entry">没有日志</div>';
+            }
+            
+            const lines = content.split('\n').filter(line => line.trim());
+            
+            return lines.map(line => {
+                // 解析日志行
+                const match = line.match(/\[(.*?)\] \[(.*?)\] (.*)/);
+                
+                if (!match) {
+                    return `<div class="log-entry">${line}</div>`;
+                }
+                
+                const time = match[1];
+                const level = match[2].toLowerCase();
+                const message = match[3];
+                
+                return `
+                    <div class="log-entry ${level}">
+                        <span class="log-time">[${time}]</span>
+                        <span class="log-level ${level}">[${level.toUpperCase()}]</span>
+                        <span class="log-message">${message}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            // 格式化日志内容
+            const logViewer = document.getElementById('logViewer');
+            logViewer.innerHTML = formatLogContent(logViewer.textContent);
+            
+            // 滚动到底部
+            logViewer.scrollTop = logViewer.scrollHeight;
+        });
+    </script>
+</body>
+</html>

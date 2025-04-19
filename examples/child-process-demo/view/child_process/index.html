@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>子进程管理示例</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .checkbox-group {
+            margin-top: 10px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #2196F3;
+        }
+        .btn-secondary:hover {
+            background-color: #0b7dda;
+        }
+        .btn-warning {
+            background-color: #ff9800;
+        }
+        .btn-warning:hover {
+            background-color: #e68a00;
+        }
+        .btn-danger {
+            background-color: #f44336;
+        }
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        .btn-info {
+            background-color: #00bcd4;
+        }
+        .btn-info:hover {
+            background-color: #008ba3;
+        }
+        .process-list {
+            margin-top: 20px;
+        }
+        .process-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #fff;
+            border-left: 4px solid #4CAF50;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .process-item.running {
+            border-left-color: #4CAF50;
+        }
+        .process-item.stopped {
+            border-left-color: #f44336;
+        }
+        .process-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .process-title {
+            font-weight: bold;
+        }
+        .process-actions {
+            display: flex;
+        }
+        .process-actions button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        .process-details {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .process-details pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            margin: 5px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-bottom: -1px;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-color: #ddd;
+            border-bottom-color: #fff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .log {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>子进程管理示例</h1>
+        
+        <div class="card">
+            <h2>简介</h2>
+            <p>这个示例展示了如何使用 NativePHP for ThinkPHP 的子进程管理功能来启动、监控和管理子进程。</p>
+            <p>你可以启动不同类型的子进程，查看它们的状态和输出，以及停止和重启它们。</p>
+        </div>
+        
+        <div class="card">
+            <h2>启动子进程</h2>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('command-tab')">命令</div>
+                <div class="tab" onclick="switchTab('php-tab')">PHP脚本</div>
+                <div class="tab" onclick="switchTab('think-tab')">ThinkPHP命令</div>
+            </div>
+            
+            <div class="tab-content active" id="command-tab">
+                <div class="form-group">
+                    <label for="command">命令：</label>
+                    <input type="text" id="command" placeholder="例如：ping localhost -n 10">
+                </div>
+                <div class="form-group">
+                    <label for="command-alias">别名（可选）：</label>
+                    <input type="text" id="command-alias" placeholder="例如：ping-test">
+                </div>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="command-persistent"> 持久化（应用关闭后保持运行）
+                    </label>
+                </div>
+                <button class="btn" onclick="startCommand()">启动命令</button>
+            </div>
+            
+            <div class="tab-content" id="php-tab">
+                <div class="form-group">
+                    <label for="script">PHP脚本路径：</label>
+                    <input type="text" id="script" placeholder="例如：scripts/long_task.php">
+                </div>
+                <div class="form-group">
+                    <label for="script-alias">别名（可选）：</label>
+                    <input type="text" id="script-alias" placeholder="例如：long-task">
+                </div>
+                <div class="form-group">
+                    <label for="script-args">参数（JSON格式，可选）：</label>
+                    <input type="text" id="script-args" placeholder='例如：["arg1", "arg2"]'>
+                </div>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="script-persistent"> 持久化（应用关闭后保持运行）
+                    </label>
+                </div>
+                <button class="btn btn-secondary" onclick="startPhpScript()">启动PHP脚本</button>
+            </div>
+            
+            <div class="tab-content" id="think-tab">
+                <div class="form-group">
+                    <label for="think-command">ThinkPHP命令：</label>
+                    <input type="text" id="think-command" placeholder="例如：cache:clear">
+                </div>
+                <div class="form-group">
+                    <label for="think-alias">别名（可选）：</label>
+                    <input type="text" id="think-alias" placeholder="例如：cache-clear">
+                </div>
+                <div class="form-group">
+                    <label for="think-args">参数（JSON格式，可选）：</label>
+                    <input type="text" id="think-args" placeholder='例如：["--force"]'>
+                </div>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="think-persistent"> 持久化（应用关闭后保持运行）
+                    </label>
+                </div>
+                <button class="btn btn-warning" onclick="startThinkCommand()">启动ThinkPHP命令</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>子进程列表</h2>
+            <button class="btn btn-info" onclick="refreshProcesses()">刷新列表</button>
+            <button class="btn btn-danger" onclick="cleanupProcesses()">清理已停止的进程</button>
+            <div class="process-list" id="process-list">
+                <p>加载中...</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>日志</h2>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 切换标签页
+        function switchTab(tabId) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 取消所有标签的激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(tabId).classList.add('active');
+            
+            // 激活选中的标签
+            const tabIndex = ['command-tab', 'php-tab', 'think-tab'].indexOf(tabId);
+            document.querySelectorAll('.tab')[tabIndex].classList.add('active');
+        }
+        
+        // 启动命令
+        function startCommand() {
+            const command = document.getElementById('command').value;
+            const alias = document.getElementById('command-alias').value;
+            const persistent = document.getElementById('command-persistent').checked;
+            
+            if (!command) {
+                alert('请输入命令');
+                return;
+            }
+            
+            logMessage(`正在启动命令: ${command}`);
+            
+            fetch('/child-process/startCommand', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    command: command,
+                    alias: alias,
+                    persistent: persistent
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    logMessage(`命令启动成功: ${data.message}, 别名: ${data.alias}`);
+                    refreshProcesses();
+                } else {
+                    logMessage(`命令启动失败: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                logMessage(`命令启动错误: ${error.message}`);
+            });
+        }
+        
+        // 启动PHP脚本
+        function startPhpScript() {
+            const script = document.getElementById('script').value;
+            const alias = document.getElementById('script-alias').value;
+            const argsStr = document.getElementById('script-args').value;
+            const persistent = document.getElementById('script-persistent').checked;
+            
+            if (!script) {
+                alert('请输入PHP脚本路径');
+                return;
+            }
+            
+            let args = [];
+            if (argsStr) {
+                try {
+                    args = JSON.parse(argsStr);
+                } catch (e) {
+                    alert('参数格式不正确，请输入有效的JSON数组');
+                    return;
+                }
+            }
+            
+            logMessage(`正在启动PHP脚本: ${script}`);
+            
+            fetch('/child-process/startPhpScript', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    script: script,
+                    alias: alias,
+                    args: args,
+                    persistent: persistent
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    logMessage(`PHP脚本启动成功: ${data.message}, 别名: ${data.alias}`);
+                    refreshProcesses();
+                } else {
+                    logMessage(`PHP脚本启动失败: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                logMessage(`PHP脚本启动错误: ${error.message}`);
+            });
+        }
+        
+        // 启动ThinkPHP命令
+        function startThinkCommand() {
+            const command = document.getElementById('think-command').value;
+            const alias = document.getElementById('think-alias').value;
+            const argsStr = document.getElementById('think-args').value;
+            const persistent = document.getElementById('think-persistent').checked;
+            
+            if (!command) {
+                alert('请输入ThinkPHP命令');
+                return;
+            }
+            
+            let args = [];
+            if (argsStr) {
+                try {
+                    args = JSON.parse(argsStr);
+                } catch (e) {
+                    alert('参数格式不正确，请输入有效的JSON数组');
+                    return;
+                }
+            }
+            
+            logMessage(`正在启动ThinkPHP命令: ${command}`);
+            
+            fetch('/child-process/startThinkCommand', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    command: command,
+                    alias: alias,
+                    args: args,
+                    persistent: persistent
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    logMessage(`ThinkPHP命令启动成功: ${data.message}, 别名: ${data.alias}`);
+                    refreshProcesses();
+                } else {
+                    logMessage(`ThinkPHP命令启动失败: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                logMessage(`ThinkPHP命令启动错误: ${error.message}`);
+            });
+        }
+        
+        // 刷新进程列表
+        function refreshProcesses() {
+            fetch('/child-process/all')
+            .then(response => response.json())
+            .then(data => {
+                const processList = document.getElementById('process-list');
+                
+                if (!data.processes || Object.keys(data.processes).length === 0) {
+                    processList.innerHTML = '<p>没有正在运行的子进程</p>';
+                    return;
+                }
+                
+                processList.innerHTML = '';
+                
+                for (const [alias, process] of Object.entries(data.processes)) {
+                    const isRunning = process.status === 'running';
+                    
+                    const processItem = document.createElement('div');
+                    processItem.className = `process-item ${isRunning ? 'running' : 'stopped'}`;
+                    processItem.id = `process-${alias}`;
+                    
+                    const processHeader = document.createElement('div');
+                    processHeader.className = 'process-header';
+                    
+                    const processTitle = document.createElement('div');
+                    processTitle.className = 'process-title';
+                    processTitle.textContent = `${alias} (${isRunning ? '运行中' : '已停止'})`;
+                    
+                    const processActions = document.createElement('div');
+                    processActions.className = 'process-actions';
+                    
+                    // 查看详情按钮
+                    const infoButton = document.createElement('button');
+                    infoButton.className = 'btn btn-info';
+                    infoButton.textContent = '详情';
+                    infoButton.onclick = function() {
+                        getProcessInfo(alias);
+                    };
+                    
+                    // 停止按钮
+                    const stopButton = document.createElement('button');
+                    stopButton.className = 'btn btn-danger';
+                    stopButton.textContent = '停止';
+                    stopButton.disabled = !isRunning;
+                    stopButton.onclick = function() {
+                        stopProcess(alias);
+                    };
+                    
+                    // 重启按钮
+                    const restartButton = document.createElement('button');
+                    restartButton.className = 'btn btn-warning';
+                    restartButton.textContent = '重启';
+                    restartButton.onclick = function() {
+                        restartProcess(alias);
+                    };
+                    
+                    // 发送消息按钮
+                    const messageButton = document.createElement('button');
+                    messageButton.className = 'btn btn-secondary';
+                    messageButton.textContent = '发送消息';
+                    messageButton.disabled = !isRunning;
+                    messageButton.onclick = function() {
+                        const message = prompt('请输入要发送的消息:');
+                        if (message) {
+                            sendMessage(alias, message);
+                        }
+                    };
+                    
+                    processActions.appendChild(infoButton);
+                    processActions.appendChild(stopButton);
+                    processActions.appendChild(restartButton);
+                    processActions.appendChild(messageButton);
+                    
+                    processHeader.appendChild(processTitle);
+                    processHeader.appendChild(processActions);
+                    
+                    processItem.appendChild(processHeader);
+                    
+                    // 进程详情（默认隐藏）
+                    const processDetails = document.createElement('div');
+                    processDetails.className = 'process-details';
+                    processDetails.style.display = 'none';
+                    processDetails.innerHTML = `
+                        <div><strong>命令:</strong> ${process.command || '未知'}</div>
+                        <div><strong>PID:</strong> ${process.pid || '未知'}</div>
+                        <div><strong>状态:</strong> ${process.status || '未知'}</div>
+                        <div><strong>持久化:</strong> ${process.persistent ? '是' : '否'}</div>
+                        <div><strong>输出:</strong> <pre id="${alias}-output">加载中...</pre></div>
+                        <div><strong>错误:</strong> <pre id="${alias}-error">加载中...</pre></div>
+                    `;
+                    
+                    processItem.appendChild(processDetails);
+                    processList.appendChild(processItem);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                logMessage(`获取进程列表错误: ${error.message}`);
+                document.getElementById('process-list').innerHTML = '<p>获取进程列表失败</p>';
+            });
+        }
+        
+        // 获取进程详情
+        function getProcessInfo(alias) {
+            const detailsElement = document.querySelector(`#process-${alias} .process-details`);
+            
+            // 切换详情显示状态
+            if (detailsElement.style.display === 'none') {
+                detailsElement.style.display = 'block';
+                
+                // 获取进程详情
+                fetch('/child-process/info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ alias: alias })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 更新输出和错误信息
+                        document.getElementById(`${alias}-output`).textContent = data.output || '无输出';
+                        document.getElementById(`${alias}-error`).textContent = data.error || '无错误';
+                    } else {
+                        logMessage(`获取进程详情失败: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('错误:', error);
+                    logMessage(`获取进程详情错误: ${error.message}`);
+                });
+            } else {
+                detailsElement.style.display = 'none';
+            }
+        }
+        
+        // 停止进程
+        function stopProcess(alias) {
+            if (confirm(`确定要停止进程 "${alias}" 吗？`)) {
+                fetch('/child-process/stop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ alias: alias })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        logMessage(`进程 "${alias}" 已停止`);
+                        refreshProcesses();
+                    } else {
+                        logMessage(`停止进程失败: ${data.message}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('错误:', error);
+                    logMessage(`停止进程错误: ${error.message}`);
+                });
+            }
+        }
+        
+        // 重启进程
+        function restartProcess(alias) {
+            fetch('/child-process/restart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ alias: alias })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    logMessage(`进程 "${alias}" 已重启`);
+                    refreshProcesses();
+                } else {
+                    logMessage(`重启进程失败: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                logMessage(`重启进程错误: ${error.message}`);
+            });
+        }
+        
+        // 发送消息
+        function sendMessage(alias, message) {
+            fetch('/child-process/sendMessage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    alias: alias,
+                    message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    logMessage(`消息已发送到进程 "${alias}"`);
+                } else {
+                    logMessage(`发送消息失败: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                logMessage(`发送消息错误: ${error.message}`);
+            });
+        }
+        
+        // 清理已停止的进程
+        function cleanupProcesses() {
+            fetch('/child-process/cleanup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    logMessage(data.message);
+                    refreshProcesses();
+                } else {
+                    logMessage(`清理进程失败: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('错误:', error);
+                logMessage(`清理进程错误: ${error.message}`);
+            });
+        }
+        
+        // 记录日志
+        function logMessage(message) {
+            const log = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${time}] ${message}`;
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // 页面加载时获取进程列表
+        window.onload = function() {
+            logMessage('页面已加载，准备就绪');
+            refreshProcesses();
+            
+            // 定期刷新进程列表
+            setInterval(refreshProcesses, 5000);
+        };
+    </script>
+</body>
+</html>

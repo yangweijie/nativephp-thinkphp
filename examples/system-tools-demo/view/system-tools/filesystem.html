@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>文件系统</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-top: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #d32f2f;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            display: none;
+        }
+        .file-list {
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .file-item:hover {
+            background-color: #f5f5f5;
+        }
+        .file-item.directory {
+            background-color: #e3f2fd;
+        }
+        .file-item.file {
+            background-color: #fff;
+        }
+        .file-name {
+            display: flex;
+            align-items: center;
+        }
+        .file-icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .file-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .file-action {
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .breadcrumb-item {
+            margin-right: 5px;
+            cursor: pointer;
+            color: #2196F3;
+        }
+        .breadcrumb-item:after {
+            content: '/';
+            margin-left: 5px;
+            color: #666;
+        }
+        .breadcrumb-item:last-child {
+            color: #333;
+            font-weight: bold;
+        }
+        .breadcrumb-item:last-child:after {
+            content: '';
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 500px;
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .modal-title {
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文件系统</h1>
+        
+        <div class="breadcrumb" id="breadcrumb">
+            <!-- 面包屑导航将在这里动态生成 -->
+        </div>
+        
+        <div class="button-group">
+            <button onclick="showCreateDirectoryModal()">创建目录</button>
+            <button onclick="showCreateFileModal()">创建文件</button>
+            <button class="secondary" onclick="refreshDirectory()">刷新</button>
+        </div>
+        
+        <div class="file-list" id="fileList">
+            <!-- 文件列表将在这里动态生成 -->
+        </div>
+    </div>
+    
+    <!-- 创建目录模态框 -->
+    <div class="modal" id="createDirectoryModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="hideModal('createDirectoryModal')">&times;</span>
+            <h2 class="modal-title">创建目录</h2>
+            <div class="form-group">
+                <label for="directoryName">目录名称</label>
+                <input type="text" id="directoryName" placeholder="输入目录名称">
+            </div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="hideModal('createDirectoryModal')">取消</button>
+                <button onclick="createDirectory()">创建</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 创建文件模态框 -->
+    <div class="modal" id="createFileModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="hideModal('createFileModal')">&times;</span>
+            <h2 class="modal-title">创建文件</h2>
+            <div class="form-group">
+                <label for="fileName">文件名称</label>
+                <input type="text" id="fileName" placeholder="输入文件名称">
+            </div>
+            <div class="form-group">
+                <label for="fileContent">文件内容</label>
+                <textarea id="fileContent" placeholder="输入文件内容"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="hideModal('createFileModal')">取消</button>
+                <button onclick="createFile()">创建</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 编辑文件模态框 -->
+    <div class="modal" id="editFileModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="hideModal('editFileModal')">&times;</span>
+            <h2 class="modal-title">编辑文件</h2>
+            <div class="form-group">
+                <label for="editFilePath">文件路径</label>
+                <input type="text" id="editFilePath" readonly>
+            </div>
+            <div class="form-group">
+                <label for="editFileContent">文件内容</label>
+                <textarea id="editFileContent"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary" onclick="hideModal('editFileModal')">取消</button>
+                <button onclick="updateFile()">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 当前目录
+        let currentDir = '{$currentDir}';
+        
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            // 更新面包屑导航
+            updateBreadcrumb();
+            
+            // 加载文件列表
+            loadFileList();
+        });
+        
+        // 更新面包屑导航
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = '';
+            
+            // 添加根目录
+            const rootItem = document.createElement('span');
+            rootItem.className = 'breadcrumb-item';
+            rootItem.textContent = 'Root';
+            rootItem.onclick = function() {
+                navigateTo('/');
+            };
+            breadcrumb.appendChild(rootItem);
+            
+            // 如果不是根目录，添加路径
+            if (currentDir !== '/') {
+                const parts = currentDir.split('/').filter(part => part);
+                let path = '';
+                
+                parts.forEach((part, index) => {
+                    path += '/' + part;
+                    
+                    const item = document.createElement('span');
+                    item.className = 'breadcrumb-item';
+                    item.textContent = part;
+                    
+                    if (index < parts.length - 1) {
+                        item.onclick = function() {
+                            navigateTo(path);
+                        };
+                    }
+                    
+                    breadcrumb.appendChild(item);
+                });
+            }
+        }
+        
+        // 加载文件列表
+        function loadFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '<div style="padding: 10px; text-align: center;">加载中...</div>';
+            
+            fetch('/system-tools/filesystem?dir=' + encodeURIComponent(currentDir))
+                .then(response => response.text())
+                .then(html => {
+                    // 解析 HTML 以获取文件列表
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const contents = JSON.parse(doc.getElementById('contents-data').textContent);
+                    
+                    // 更新文件列表
+                    updateFileList(contents);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    fileList.innerHTML = '<div style="padding: 10px; text-align: center; color: red;">加载失败</div>';
+                });
+        }
+        
+        // 更新文件列表
+        function updateFileList(contents) {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            
+            // 如果不是根目录，添加返回上级目录
+            if (currentDir !== '/') {
+                const parentDir = currentDir.substring(0, currentDir.lastIndexOf('/'));
+                const parentDirItem = document.createElement('div');
+                parentDirItem.className = 'file-item directory';
+                parentDirItem.innerHTML = `
+                    <div class="file-name">
+                        <span class="file-icon">📁</span>
+                        <span>.. (上级目录)</span>
+                    </div>
+                `;
+                parentDirItem.onclick = function() {
+                    navigateTo(parentDir || '/');
+                };
+                fileList.appendChild(parentDirItem);
+            }
+            
+            // 添加目录
+            contents.filter(item => item.type === 'dir').forEach(item => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item directory';
+                fileItem.innerHTML = `
+                    <div class="file-name">
+                        <span class="file-icon">📁</span>
+                        <span>${item.name}</span>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-action danger" onclick="event.stopPropagation(); deleteItem('${item.path}')">删除</button>
+                    </div>
+                `;
+                fileItem.onclick = function() {
+                    navigateTo(item.path);
+                };
+                fileList.appendChild(fileItem);
+            });
+            
+            // 添加文件
+            contents.filter(item => item.type === 'file').forEach(item => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item file';
+                fileItem.innerHTML = `
+                    <div class="file-name">
+                        <span class="file-icon">📄</span>
+                        <span>${item.name}</span>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-action secondary" onclick="event.stopPropagation(); editFile('${item.path}')">编辑</button>
+                        <button class="file-action danger" onclick="event.stopPropagation(); deleteItem('${item.path}')">删除</button>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            });
+            
+            // 如果没有文件和目录
+            if (contents.length === 0) {
+                fileList.innerHTML = '<div style="padding: 10px; text-align: center;">目录为空</div>';
+            }
+        }
+        
+        // 导航到指定目录
+        function navigateTo(path) {
+            currentDir = path;
+            updateBreadcrumb();
+            loadFileList();
+        }
+        
+        // 刷新当前目录
+        function refreshDirectory() {
+            loadFileList();
+        }
+        
+        // 显示创建目录模态框
+        function showCreateDirectoryModal() {
+            document.getElementById('directoryName').value = '';
+            document.getElementById('createDirectoryModal').style.display = 'block';
+        }
+        
+        // 显示创建文件模态框
+        function showCreateFileModal() {
+            document.getElementById('fileName').value = '';
+            document.getElementById('fileContent').value = '';
+            document.getElementById('createFileModal').style.display = 'block';
+        }
+        
+        // 隐藏模态框
+        function hideModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // 创建目录
+        function createDirectory() {
+            const name = document.getElementById('directoryName').value;
+            
+            if (!name) {
+                alert('目录名称不能为空');
+                return;
+            }
+            
+            fetch('/system-tools/createDirectory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    path: currentDir,
+                    name: name,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    hideModal('createDirectoryModal');
+                    refreshDirectory();
+                } else {
+                    alert('创建目录失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('创建目录失败');
+            });
+        }
+        
+        // 创建文件
+        function createFile() {
+            const name = document.getElementById('fileName').value;
+            const content = document.getElementById('fileContent').value;
+            
+            if (!name) {
+                alert('文件名称不能为空');
+                return;
+            }
+            
+            fetch('/system-tools/createFile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    path: currentDir,
+                    name: name,
+                    content: content,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    hideModal('createFileModal');
+                    refreshDirectory();
+                } else {
+                    alert('创建文件失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('创建文件失败');
+            });
+        }
+        
+        // 编辑文件
+        function editFile(path) {
+            document.getElementById('editFilePath').value = path;
+            
+            fetch('/system-tools/readFile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    path: path,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('editFileContent').value = data.content;
+                    document.getElementById('editFileModal').style.display = 'block';
+                } else {
+                    alert('读取文件失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('读取文件失败');
+            });
+        }
+        
+        // 更新文件
+        function updateFile() {
+            const path = document.getElementById('editFilePath').value;
+            const content = document.getElementById('editFileContent').value;
+            
+            fetch('/system-tools/updateFile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    path: path,
+                    content: content,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    hideModal('editFileModal');
+                    refreshDirectory();
+                } else {
+                    alert('更新文件失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('更新文件失败');
+            });
+        }
+        
+        // 删除文件或目录
+        function deleteItem(path) {
+            if (!confirm('确定要删除吗？')) {
+                return;
+            }
+            
+            fetch('/system-tools/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    path: path,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    refreshDirectory();
+                } else {
+                    alert('删除失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('删除失败');
+            });
+        }
+    </script>
+    
+    <!-- 隐藏的数据元素 -->
+    <script id="contents-data" type="application/json">{:json_encode($contents)}</script>
+</body>
+</html>

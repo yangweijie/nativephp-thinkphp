@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NativePHP for ThinkPHP 推送通知示例</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            margin-top: 30px;
+        }
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0055aa;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #0066cc;
+        }
+        .environment {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .desktop {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .development {
+            background-color: #FFC107;
+            color: #333;
+        }
+        .web {
+            background-color: #2196F3;
+            color: white;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        input[type="text"], textarea {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            background-color: #f9f9f9;
+            border-color: #ddd;
+            color: #0066cc;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .notification-card {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: white;
+        }
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .notification-body {
+            margin-bottom: 5px;
+        }
+        .notification-meta {
+            font-size: 12px;
+            color: #666;
+        }
+        .notification-actions {
+            margin-top: 10px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: white;
+            margin-left: 5px;
+        }
+        .badge-success {
+            background-color: #4CAF50;
+        }
+        .badge-warning {
+            background-color: #FFC107;
+            color: #333;
+        }
+        .badge-danger {
+            background-color: #F44336;
+        }
+        .badge-info {
+            background-color: #2196F3;
+        }
+        .statistics-card {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            flex: 1;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            margin: 0 5px;
+            color: white;
+        }
+        .stat-box h4 {
+            margin: 0;
+            font-size: 14px;
+        }
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .stat-sent {
+            background-color: #2196F3;
+        }
+        .stat-delivered {
+            background-color: #4CAF50;
+        }
+        .stat-opened {
+            background-color: #9C27B0;
+        }
+        .stat-failed {
+            background-color: #F44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>NativePHP for ThinkPHP 推送通知示例 <span id="environment" class="environment"></span></h1>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="send">发送推送</div>
+        <div class="tab" data-tab="history">推送历史</div>
+        <div class="tab" data-tab="statistics">推送统计</div>
+    </div>
+    
+    <div class="tab-content active" id="tab-send">
+        <div class="section">
+            <h3>发送推送通知</h3>
+            <div class="form-group">
+                <label for="device-token">设备令牌</label>
+                <input type="text" id="device-token" placeholder="输入设备令牌">
+            </div>
+            <div class="form-group">
+                <label for="notification-title">通知标题</label>
+                <input type="text" id="notification-title" placeholder="输入通知标题">
+            </div>
+            <div class="form-group">
+                <label for="notification-body">通知内容</label>
+                <textarea id="notification-body" rows="3" placeholder="输入通知内容"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="notification-data">附加数据 (JSON)</label>
+                <textarea id="notification-data" rows="3" placeholder='{"key": "value"}'></textarea>
+            </div>
+            <div class="form-group">
+                <label>选项</label>
+                <div>
+                    <input type="checkbox" id="option-sound" checked>
+                    <label for="option-sound" style="display: inline;">启用声音</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="option-badge">
+                    <label for="option-badge" style="display: inline;">设置徽章</label>
+                    <input type="number" id="badge-count" placeholder="徽章数量" style="width: 80px; margin-left: 10px;" min="0">
+                </div>
+            </div>
+            <div>
+                <button id="btn-send-push">发送推送</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="tab-history">
+        <div class="section">
+            <h3>推送历史</h3>
+            <div>
+                <button id="btn-refresh-history">刷新历史</button>
+            </div>
+            <div id="history-list" style="margin-top: 15px;">
+                <div class="notification-card">
+                    <div class="notification-title">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="tab-statistics">
+        <div class="section">
+            <h3>推送统计</h3>
+            <div class="form-group">
+                <label>日期范围</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="date" id="start-date" style="flex: 1;">
+                    <input type="date" id="end-date" style="flex: 1;">
+                    <button id="btn-get-statistics">获取统计</button>
+                </div>
+            </div>
+            <div class="statistics-card">
+                <div class="stat-box stat-sent">
+                    <h4>已发送</h4>
+                    <div class="value" id="stat-sent">0</div>
+                </div>
+                <div class="stat-box stat-delivered">
+                    <h4>已送达</h4>
+                    <div class="value" id="stat-delivered">0</div>
+                </div>
+                <div class="stat-box stat-opened">
+                    <h4>已打开</h4>
+                    <div class="value" id="stat-opened">0</div>
+                </div>
+                <div class="stat-box stat-failed">
+                    <h4>失败</h4>
+                    <div class="value" id="stat-failed">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>结果</h2>
+    <div id="result" class="result">
+        操作结果将显示在这里...
+    </div>
+
+    <script src="/static/js/nativephp.js"></script>
+    <script src="/static/js/nativephp-push.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取应用环境
+            NativeClient.app.getEnvironment().then(function(environment) {
+                const envElement = document.getElementById('environment');
+                envElement.textContent = environment;
+                envElement.classList.add(environment);
+            }).catch(function(error) {
+                document.getElementById('environment').textContent = 'web';
+                document.getElementById('environment').classList.add('web');
+                console.error('获取应用环境失败', error);
+            });
+
+            // 标签切换
+            document.querySelectorAll('.tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    // 移除所有标签的活动状态
+                    document.querySelectorAll('.tab').forEach(function(t) {
+                        t.classList.remove('active');
+                    });
+                    
+                    // 隐藏所有标签内容
+                    document.querySelectorAll('.tab-content').forEach(function(content) {
+                        content.classList.remove('active');
+                    });
+                    
+                    // 激活当前标签
+                    this.classList.add('active');
+                    
+                    // 显示对应的标签内容
+                    const tabId = 'tab-' + this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // 如果是历史标签，加载历史数据
+                    if (this.getAttribute('data-tab') === 'history') {
+                        loadHistory();
+                    }
+                    
+                    // 如果是统计标签，加载统计数据
+                    if (this.getAttribute('data-tab') === 'statistics') {
+                        loadStatistics();
+                    }
+                });
+            });
+
+            // 发送推送
+            document.getElementById('btn-send-push').addEventListener('click', function() {
+                const token = document.getElementById('device-token').value;
+                const title = document.getElementById('notification-title').value;
+                const body = document.getElementById('notification-body').value;
+                let data = {};
+                
+                try {
+                    const dataText = document.getElementById('notification-data').value;
+                    if (dataText) {
+                        data = JSON.parse(dataText);
+                    }
+                } catch (e) {
+                    showResult('附加数据 JSON 格式错误: ' + e.message);
+                    return;
+                }
+                
+                // 验证必填字段
+                if (!token) {
+                    showResult('请输入设备令牌');
+                    return;
+                }
+                
+                if (!title) {
+                    showResult('请输入通知标题');
+                    return;
+                }
+                
+                if (!body) {
+                    showResult('请输入通知内容');
+                    return;
+                }
+                
+                // 构建选项
+                const options = {
+                    sound: document.getElementById('option-sound').checked ? 'default' : null,
+                };
+                
+                if (document.getElementById('option-badge').checked) {
+                    const badgeCount = parseInt(document.getElementById('badge-count').value);
+                    if (!isNaN(badgeCount)) {
+                        options.badge = badgeCount;
+                    }
+                }
+                
+                // 发送推送
+                NativeClient.pushNotification.send(token, title, body, data, options)
+                    .then(function(reference) {
+                        if (reference) {
+                            showResult('推送已发送，引用 ID: ' + reference);
+                        } else {
+                            showResult('发送推送失败');
+                        }
+                    })
+                    .catch(function(error) {
+                        showResult('发送推送失败: ' + error);
+                    });
+            });
+
+            // 加载历史
+            function loadHistory() {
+                document.getElementById('history-list').innerHTML = '<div class="notification-card"><div class="notification-title">加载中...</div></div>';
+                
+                NativeClient.pushNotification.getHistory(10, 0)
+                    .then(function(history) {
+                        if (history && history.length > 0) {
+                            let html = '';
+                            
+                            history.forEach(function(item) {
+                                let statusBadge = '';
+                                
+                                switch (item.status) {
+                                    case 'sent':
+                                        statusBadge = '<span class="badge badge-info">已发送</span>';
+                                        break;
+                                    case 'delivered':
+                                        statusBadge = '<span class="badge badge-success">已送达</span>';
+                                        break;
+                                    case 'failed':
+                                        statusBadge = '<span class="badge badge-danger">失败</span>';
+                                        break;
+                                    default:
+                                        statusBadge = '<span class="badge badge-warning">处理中</span>';
+                                }
+                                
+                                html += `
+                                    <div class="notification-card">
+                                        <div class="notification-title">${item.title} ${statusBadge}</div>
+                                        <div class="notification-body">${item.body}</div>
+                                        <div class="notification-meta">
+                                            发送时间: ${item.created_at}
+                                            <br>
+                                            设备: ${item.tokens.length} 个
+                                        </div>
+                                        <div class="notification-actions">
+                                            <button class="btn-check-status" data-reference="${item.reference}">查看状态</button>
+                                            <button class="btn-cancel-push" data-reference="${item.reference}">取消推送</button>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            document.getElementById('history-list').innerHTML = html;
+                            
+                            // 绑定查看状态按钮
+                            document.querySelectorAll('.btn-check-status').forEach(function(button) {
+                                button.addEventListener('click', function() {
+                                    const reference = this.getAttribute('data-reference');
+                                    checkPushStatus(reference);
+                                });
+                            });
+                            
+                            // 绑定取消推送按钮
+                            document.querySelectorAll('.btn-cancel-push').forEach(function(button) {
+                                button.addEventListener('click', function() {
+                                    const reference = this.getAttribute('data-reference');
+                                    cancelPush(reference);
+                                });
+                            });
+                        } else {
+                            document.getElementById('history-list').innerHTML = '<div class="notification-card"><div class="notification-title">暂无推送历史</div></div>';
+                        }
+                    })
+                    .catch(function(error) {
+                        document.getElementById('history-list').innerHTML = '<div class="notification-card"><div class="notification-title">加载失败</div><div class="notification-body">' + error + '</div></div>';
+                    });
+            }
+
+            // 刷新历史
+            document.getElementById('btn-refresh-history').addEventListener('click', loadHistory);
+
+            // 查看推送状态
+            function checkPushStatus(reference) {
+                NativeClient.pushNotification.getStatus(reference)
+                    .then(function(status) {
+                        showResult('推送状态: ' + JSON.stringify(status, null, 2));
+                    })
+                    .catch(function(error) {
+                        showResult('获取推送状态失败: ' + error);
+                    });
+            }
+
+            // 取消推送
+            function cancelPush(reference) {
+                NativeClient.pushNotification.cancel(reference)
+                    .then(function(success) {
+                        if (success) {
+                            showResult('推送已取消');
+                            loadHistory(); // 刷新历史
+                        } else {
+                            showResult('取消推送失败');
+                        }
+                    })
+                    .catch(function(error) {
+                        showResult('取消推送失败: ' + error);
+                    });
+            }
+
+            // 加载统计
+            function loadStatistics() {
+                const today = new Date();
+                const startDate = new Date();
+                startDate.setDate(today.getDate() - 30); // 默认显示最近30天
+                
+                document.getElementById('start-date').value = formatDate(startDate);
+                document.getElementById('end-date').value = formatDate(today);
+                
+                getStatistics(formatDate(startDate), formatDate(today));
+            }
+
+            // 获取统计
+            document.getElementById('btn-get-statistics').addEventListener('click', function() {
+                const startDate = document.getElementById('start-date').value;
+                const endDate = document.getElementById('end-date').value;
+                
+                getStatistics(startDate, endDate);
+            });
+
+            // 获取统计数据
+            function getStatistics(startDate, endDate) {
+                NativeClient.pushNotification.getStatistics(startDate, endDate)
+                    .then(function(statistics) {
+                        document.getElementById('stat-sent').textContent = statistics.sent;
+                        document.getElementById('stat-delivered').textContent = statistics.delivered;
+                        document.getElementById('stat-opened').textContent = statistics.opened;
+                        document.getElementById('stat-failed').textContent = statistics.failed;
+                    })
+                    .catch(function(error) {
+                        showResult('获取统计数据失败: ' + error);
+                    });
+            }
+
+            // 格式化日期
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            // 显示结果
+            function showResult(message) {
+                document.getElementById('result').textContent = message;
+            }
+        });
+    </script>
+</body>
+</html>

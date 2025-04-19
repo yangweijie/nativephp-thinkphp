@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>查看压缩文件 - 文件管理器</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        .archive-info {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .archive-info h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .archive-info p {
+            margin: 5px 0;
+        }
+        .archive-contents {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .archive-contents table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .archive-contents th {
+            background-color: #f0f0f0;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .archive-contents td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .archive-contents tr:last-child td {
+            border-bottom: none;
+        }
+        .archive-contents .folder-icon {
+            color: #ffc107;
+        }
+        .archive-contents .file-icon {
+            color: #6c757d;
+        }
+        .archive-contents .encrypted-icon {
+            color: #dc3545;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>查看压缩文件</h1>
+            <a href="/file/index?path={:dirname($path)|urlencode}" class="btn">返回文件列表</a>
+        </div>
+
+        <div class="archive-info">
+            <h2>{$filename}</h2>
+            <p><strong>类型:</strong> {$archiveType|strtoupper} 压缩文件</p>
+            <p><strong>路径:</strong> {$path}</p>
+            <p><strong>文件数:</strong> {$contents|count}</p>
+            {if $hasPassword}
+            <p><strong>加密:</strong> 是 (已提供密码)</p>
+            {/if}
+        </div>
+
+        <div class="action-buttons">
+            <a href="/compress/extract?path={$path|urlencode}&password={$hasPassword ? $Think.get.password : ''}" class="btn btn-primary">解压到当前文件夹</a>
+            <a href="/compress/selectExtractDestination?path={$path|urlencode}&password={$hasPassword ? $Think.get.password : ''}" class="btn btn-secondary">解压到指定位置...</a>
+        </div>
+
+        <div class="archive-contents">
+            <table>
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>大小</th>
+                        <th>压缩后大小</th>
+                        <th>修改日期</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {if empty($contents)}
+                        <tr>
+                            <td colspan="5" class="text-center">压缩文件为空或无法读取内容</td>
+                        </tr>
+                    {else}
+                        {foreach $contents as $item}
+                            <tr>
+                                <td>
+                                    {if $item.is_dir}
+                                        <span class="folder-icon">📁</span>
+                                    {else}
+                                        <span class="file-icon">📄</span>
+                                    {/if}
+                                    {$item.name}
+                                </td>
+                                <td>{:formatSize($item.size)}</td>
+                                <td>{:formatSize($item.compressed_size)}</td>
+                                <td>{$item.modified}</td>
+                                <td>
+                                    {if $item.encrypted}
+                                        <span class="encrypted-icon">🔒 加密</span>
+                                    {else}
+                                        <span>正常</span>
+                                    {/if}
+                                </td>
+                            </tr>
+                        {/foreach}
+                    {/if}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 格式化文件大小的辅助函数
+        function formatSize(size) {
+            if (size === 0) return '0 B';
+            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(size) / Math.log(1024));
+            return (size / Math.pow(1024, i)).toFixed(2) + ' ' + units[i];
+        }
+    </script>
+</body>
+</html>

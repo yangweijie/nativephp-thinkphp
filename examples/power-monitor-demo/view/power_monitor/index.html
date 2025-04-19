@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>电源监控示例</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>电源监控示例</h1>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>电源状态</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" onclick="refreshStatus()">刷新</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="status-group">
+                        <div class="status-item">
+                            <div class="status-label">电源状态</div>
+                            <div class="status-value">
+                                <span class="status-badge status-badge-{$powerState == 'charging' || $powerState == 'charged' ? 'success' : 'warning'}">
+                                    {switch name="powerState"}
+                                        {case value="charging"}正在充电{/case}
+                                        {case value="charged"}已充满{/case}
+                                        {case value="discharging"}放电中{/case}
+                                        {case value="ac"}交流电源{/case}
+                                        {default}未知{/default}
+                                    {/switch}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">电池电量</div>
+                            <div class="status-value">
+                                <div class="battery-level">
+                                    <div class="battery-level-fill" style="width: {$batteryLevel * 100}%"></div>
+                                </div>
+                                <div class="battery-level-text">{$batteryLevel * 100}%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">电池状态</div>
+                            <div class="status-value">
+                                <span class="status-badge status-badge-{$isBatteryCharging ? 'success' : 'warning'}">
+                                    {$isBatteryCharging ? '正在充电' : '未充电'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">电池剩余时间</div>
+                            <div class="status-value">
+                                {$batteryTimeRemaining > 0 ? $batteryTimeRemaining . ' 分钟' : '未知'}
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">低电量模式</div>
+                            <div class="status-value">
+                                <span class="status-badge status-badge-{$isLowPowerMode ? 'warning' : 'success'}">
+                                    {$isLowPowerMode ? '已启用' : '未启用'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>系统状态</h2>
+                </div>
+                <div class="card-body">
+                    <div class="status-group">
+                        <div class="status-item">
+                            <div class="status-label">系统空闲时间</div>
+                            <div class="status-value">{$idleTime} 秒</div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">系统是否空闲</div>
+                            <div class="status-value">
+                                <span class="status-badge status-badge-{$isIdle ? 'info' : 'success'}">
+                                    {$isIdle ? '空闲' : '活动'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">系统是否锁定</div>
+                            <div class="status-value">
+                                <span class="status-badge status-badge-{$isLocked ? 'warning' : 'success'}">
+                                    {$isLocked ? '已锁定' : '未锁定'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">屏幕保护状态</div>
+                            <div class="status-value">
+                                <span class="status-badge status-badge-{$isOnScreenSaver ? 'info' : 'success'}">
+                                    {$isOnScreenSaver ? '已启用' : '未启用'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">睡眠模式</div>
+                            <div class="status-value">
+                                <span class="status-badge status-badge-{$isSleepMode ? 'info' : 'success'}">
+                                    {$isSleepMode ? '已启用' : '未启用'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="status-label">休眠模式</div>
+                            <div class="status-value">
+                                <span class="status-badge status-badge-{$isHibernateMode ? 'info' : 'success'}">
+                                    {$isHibernateMode ? '已启用' : '未启用'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>电源信息</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-group">
+                        {if !empty($powerInfo)}
+                            {foreach $powerInfo as $key => $value}
+                                <div class="info-item">
+                                    <div class="info-label">{$key}</div>
+                                    <div class="info-value">{$value}</div>
+                                </div>
+                            {/foreach}
+                        {else}
+                            <p>暂无电源信息</p>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>电源设置</h2>
+                </div>
+                <div class="card-body">
+                    <div class="info-group">
+                        {if !empty($powerSettings)}
+                            {foreach $powerSettings as $key => $value}
+                                <div class="info-item">
+                                    <div class="info-label">{$key}</div>
+                                    <div class="info-value">{$value}</div>
+                                </div>
+                            {/foreach}
+                        {else}
+                            <p>暂无电源设置</p>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>电源事件监听</h2>
+                </div>
+                <div class="card-body">
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="registerEvents()">注册事件监听器</button>
+                        <button class="btn btn-danger" onclick="unregisterEvents()">取消事件监听器</button>
+                        <button class="btn btn-secondary" onclick="clearEvents()">清空事件日志</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>电源事件日志</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" onclick="refreshEvents()">刷新</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="eventLog" class="event-log">
+                        {if empty($powerEvents)}
+                            <p>暂无事件日志</p>
+                        {else}
+                            {foreach $powerEvents as $event}
+                                <div class="event-item event-{$event.type}">
+                                    <div class="event-time">{$event.time}</div>
+                                    <div class="event-message">{$event.message}</div>
+                                </div>
+                            {/foreach}
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化应用
+            initApp();
+            
+            // 定时刷新事件日志
+            setInterval(refreshEvents, 5000);
+        });
+        
+        // 初始化应用
+        function initApp() {
+            // 这里可以添加初始化代码
+        }
+        
+        // 刷新状态
+        function refreshStatus() {
+            location.reload();
+        }
+        
+        // 注册事件监听器
+        function registerEvents() {
+            fetch('/power_monitor/registerEvents', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '注册事件监听器失败');
+            });
+        }
+        
+        // 取消事件监听器
+        function unregisterEvents() {
+            fetch('/power_monitor/unregisterEvents', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                    refreshEvents();
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '取消事件监听器失败');
+            });
+        }
+        
+        // 清空事件日志
+        function clearEvents() {
+            fetch('/power_monitor/clearEvents', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                    refreshEvents();
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '清空事件日志失败');
+            });
+        }
+        
+        // 刷新事件日志
+        function refreshEvents() {
+            fetch('/power_monitor/getEvents', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateEventLog(data.events);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        
+        // 更新事件日志
+        function updateEventLog(events) {
+            const eventLog = document.getElementById('eventLog');
+            
+            if (events.length === 0) {
+                eventLog.innerHTML = '<p>暂无事件日志</p>';
+                return;
+            }
+            
+            let html = '';
+            
+            events.forEach(event => {
+                html += `
+                    <div class="event-item event-${event.type}">
+                        <div class="event-time">${event.time}</div>
+                        <div class="event-message">${event.message}</div>
+                    </div>
+                `;
+            });
+            
+            eventLog.innerHTML = html;
+        }
+        
+        // 显示通知
+        function showNotification(title, body) {
+            if (typeof window.NativePHP !== 'undefined') {
+                window.NativePHP.notification.send(title, body);
+            } else {
+                alert(`${title}: ${body}`);
+            }
+        }
+    </script>
+</body>
+</html>

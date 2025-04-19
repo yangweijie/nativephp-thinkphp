@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>收藏夹</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        .favorites-list {
+            margin-top: 20px;
+        }
+        
+        .favorite-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        .favorite-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .favorite-icon {
+            width: 32px;
+            height: 32px;
+            margin-right: 15px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .favorite-info {
+            flex: 1;
+        }
+        
+        .favorite-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .favorite-path {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .favorite-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .favorite-actions button {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        
+        .favorite-not-exists {
+            opacity: 0.5;
+        }
+        
+        .favorite-not-exists .favorite-name::after {
+            content: " (不存在)";
+            color: #dc3545;
+            font-weight: normal;
+        }
+        
+        .empty-favorites {
+            padding: 30px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>收藏夹</h1>
+            <div class="actions">
+                <a href="/file/index" class="btn">返回文件管理器</a>
+            </div>
+        </div>
+        
+        <div class="favorites-list">
+            {if empty($favorites)}
+            <div class="empty-favorites">
+                <p>收藏夹为空</p>
+                <p>浏览文件时，可以将常用的文件和文件夹添加到收藏夹</p>
+            </div>
+            {else}
+            {volist name="favorites" id="favorite"}
+            <div class="favorite-item {$favorite.exists ? '' : 'favorite-not-exists'}" data-path="{$favorite.path}">
+                <div class="favorite-icon {$favorite.icon}-icon"></div>
+                <div class="favorite-info">
+                    <div class="favorite-name">{$favorite.name}</div>
+                    <div class="favorite-path">{$favorite.path}</div>
+                </div>
+                <div class="favorite-actions">
+                    <button onclick="openFavorite('{$favorite.path}', '{$favorite.type}')" {$favorite.exists ? '' : 'disabled'}>打开</button>
+                    <button onclick="renameFavorite('{$favorite.path}', '{$favorite.name}')">重命名</button>
+                    <button onclick="removeFavorite('{$favorite.path}')">删除</button>
+                </div>
+            </div>
+            {/volist}
+            {/if}
+        </div>
+    </div>
+    
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">标题</h2>
+            <div id="modalBody">内容</div>
+            <div id="modalFooter">
+                <button id="modalConfirm" class="btn btn-primary">确定</button>
+                <button id="modalCancel" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 初始化模态框
+        document.addEventListener('DOMContentLoaded', function() {
+            initModal();
+        });
+        
+        // 打开收藏
+        function openFavorite(path, type) {
+            if (type === 'directory') {
+                window.location.href = '/file/index?path=' + encodeURIComponent(path);
+            } else {
+                fetch('/file/open', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        showNotification('错误', data.message || '打开失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            }
+        }
+        
+        // 重命名收藏
+        function renameFavorite(path, currentName) {
+            showModal('重命名收藏', `
+                <div class="form-group">
+                    <label for="newName">新名称:</label>
+                    <input type="text" id="newName" class="form-control" value="${currentName}" placeholder="请输入新名称">
+                </div>
+            `, function() {
+                const newName = document.getElementById('newName').value;
+                
+                if (!newName) {
+                    showNotification('错误', '名称不能为空');
+                    return;
+                }
+                
+                fetch('/favorite/rename', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path) + '&newName=' + encodeURIComponent(newName),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        showNotification('错误', data.message || '重命名失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            });
+        }
+        
+        // 删除收藏
+        function removeFavorite(path) {
+            showModal('删除收藏', `
+                <p>确定要从收藏夹中删除此项吗？</p>
+                <p>这不会删除实际的文件或目录。</p>
+            `, function() {
+                fetch('/favorite/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        showNotification('错误', data.message || '删除失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            });
+        }
+        
+        // 显示通知
+        function showNotification(title, message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <div class="notification-title">${title}</div>
+                <div class="notification-message">${message}</div>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('notification-hide');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

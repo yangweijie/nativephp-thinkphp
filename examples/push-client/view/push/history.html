@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>推送通知历史记录</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>推送通知客户端</h2>
+            </div>
+            
+            <div class="nav-menu">
+                <ul>
+                    <li><a href="/push/index">主页</a></li>
+                    <li class="active"><a href="/push/history">历史记录</a></li>
+                    <li><a href="/push/settings">设置</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="content-header">
+                <h1>推送通知历史记录</h1>
+                <div class="actions">
+                    <button class="btn btn-secondary" onclick="refreshNotifications()">刷新</button>
+                    <button class="btn btn-danger" onclick="clearHistory()">清空历史记录</button>
+                </div>
+            </div>
+            
+            <div class="notifications">
+                {if empty($notifications)}
+                <p>暂无通知</p>
+                {else}
+                <div class="notification-list">
+                    {volist name="notifications" id="notification"}
+                    <div class="notification-item {$notification.status == 'received' ? 'unread' : ''}">
+                        <div class="notification-header">
+                            <h4>{$notification.title}</h4>
+                            <span class="notification-time">{$notification.received_at ?: $notification.sent_at}</span>
+                        </div>
+                        <div class="notification-body">
+                            <p>{$notification.body}</p>
+                            {if !empty($notification.data)}
+                            <div class="notification-data">
+                                <h5>附加数据</h5>
+                                <pre>{:json_encode($notification.data, JSON_PRETTY_PRINT)}</pre>
+                            </div>
+                            {/if}
+                        </div>
+                        <div class="notification-footer">
+                            <div class="notification-info">
+                                <span class="notification-status">{$notification.status}</span>
+                                {if !empty($notification.reference)}
+                                <span class="notification-reference">引用ID: {$notification.reference}</span>
+                                {/if}
+                            </div>
+                            <div class="notification-actions">
+                                {if $notification.status == 'received'}
+                                <button class="btn btn-sm btn-primary" onclick="markAsRead('{$notification.id}')">标记为已读</button>
+                                {/if}
+                                <button class="btn btn-sm btn-secondary" onclick="viewNotificationDetails('{$notification.id}')">查看详情</button>
+                            </div>
+                        </div>
+                    </div>
+                    {/volist}
+                </div>
+                <div class="pagination">
+                    <button class="btn btn-sm btn-secondary" onclick="loadMore()">加载更多</button>
+                </div>
+                {/if}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 通知详情模态框 -->
+    <div id="notificationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">通知详情</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        let currentOffset = 0;
+        const limit = 20;
+        
+        function markAsRead(id) {
+            fetch('/push/markAsRead', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 刷新页面
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('标记为已读失败');
+            });
+        }
+        
+        function clearHistory() {
+            if (!confirm('确定要清空历史记录吗？此操作不可恢复。')) {
+                return;
+            }
+            
+            fetch('/push/clearHistory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('清空历史记录失败');
+            });
+        }
+        
+        function refreshNotifications() {
+            location.reload();
+        }
+        
+        function loadMore() {
+            currentOffset += limit;
+            
+            fetch(`/push/getNotifications?limit=${limit}&offset=${currentOffset}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const notifications = data.notifications;
+                    
+                    if (notifications.length === 0) {
+                        alert('没有更多通知了');
+                        return;
+                    }
+                    
+                    const notificationList = document.querySelector('.notification-list');
+                    
+                    notifications.forEach(notification => {
+                        const notificationItem = document.createElement('div');
+                        notificationItem.className = `notification-item ${notification.status === 'received' ? 'unread' : ''}`;
+                        
+                        const time = notification.received_at || notification.sent_at;
+                        
+                        notificationItem.innerHTML = `
+                            <div class="notification-header">
+                                <h4>${notification.title}</h4>
+                                <span class="notification-time">${time}</span>
+                            </div>
+                            <div class="notification-body">
+                                <p>${notification.body}</p>
+                                ${notification.data ? `
+                                <div class="notification-data">
+                                    <h5>附加数据</h5>
+                                    <pre>${JSON.stringify(notification.data, null, 2)}</pre>
+                                </div>
+                                ` : ''}
+                            </div>
+                            <div class="notification-footer">
+                                <div class="notification-info">
+                                    <span class="notification-status">${notification.status}</span>
+                                    ${notification.reference ? `<span class="notification-reference">引用ID: ${notification.reference}</span>` : ''}
+                                </div>
+                                <div class="notification-actions">
+                                    ${notification.status === 'received' ? `<button class="btn btn-sm btn-primary" onclick="markAsRead('${notification.id}')">标记为已读</button>` : ''}
+                                    <button class="btn btn-sm btn-secondary" onclick="viewNotificationDetails('${notification.id}')">查看详情</button>
+                                </div>
+                            </div>
+                        `;
+                        
+                        notificationList.appendChild(notificationItem);
+                    });
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('加载更多通知失败');
+            });
+        }
+        
+        function viewNotificationDetails(id) {
+            // 查找通知
+            const notificationItems = document.querySelectorAll('.notification-item');
+            let notification = null;
+            
+            for (const item of notificationItems) {
+                if (item.querySelector('.notification-actions button').getAttribute('onclick').includes(id)) {
+                    notification = {
+                        title: item.querySelector('.notification-header h4').textContent,
+                        time: item.querySelector('.notification-time').textContent,
+                        body: item.querySelector('.notification-body p').textContent,
+                        status: item.querySelector('.notification-status').textContent,
+                        reference: item.querySelector('.notification-reference') ? item.querySelector('.notification-reference').textContent.replace('引用ID: ', '') : '',
+                        data: item.querySelector('.notification-data pre') ? item.querySelector('.notification-data pre').textContent : '',
+                    };
+                    break;
+                }
+            }
+            
+            if (!notification) {
+                alert('找不到通知详情');
+                return;
+            }
+            
+            // 显示模态框
+            document.getElementById('modalTitle').textContent = notification.title;
+            
+            let content = `
+                <p><strong>内容：</strong> ${notification.body}</p>
+                <p><strong>时间：</strong> ${notification.time}</p>
+                <p><strong>状态：</strong> ${notification.status}</p>
+            `;
+            
+            if (notification.reference) {
+                content += `<p><strong>引用ID：</strong> ${notification.reference}</p>`;
+            }
+            
+            if (notification.data) {
+                content += `
+                    <p><strong>附加数据：</strong></p>
+                    <pre>${notification.data}</pre>
+                `;
+            }
+            
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('notificationModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('notificationModal').style.display = 'none';
+        }
+        
+        // 点击模态框外部关闭模态框
+        window.onclick = function(event) {
+            const modal = document.getElementById('notificationModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>

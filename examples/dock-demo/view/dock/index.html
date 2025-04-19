@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dock 功能示例</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dock 功能示例</h1>
+            {if !$isMacOS}
+            <div class="alert alert-warning">
+                <strong>注意：</strong> Dock 功能仅在 macOS 平台上可用。当前平台不支持 Dock 功能。
+            </div>
+            {/if}
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>徽章</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="badgeText">徽章文本</label>
+                        <input type="text" id="badgeText" class="form-control" value="{$settings.badge ?? ''}">
+                        <button class="btn btn-primary" onclick="setBadge()">设置徽章文本</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="badgeCount">徽章计数</label>
+                        <input type="number" id="badgeCount" class="form-control" value="{$badgeCount}" min="0">
+                        <button class="btn btn-primary" onclick="setBadgeCount()">设置徽章计数</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-danger" onclick="clearBadge()">清除徽章</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>弹跳</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="bounceType">弹跳类型</label>
+                        <select id="bounceType" class="form-control">
+                            <option value="informational">信息性弹跳（弹跳一次）</option>
+                            <option value="critical">关键性弹跳（一直弹跳直到应用程序激活）</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="bounce()">弹跳图标</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-danger" onclick="cancelBounce()">取消弹跳</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>下载进度条</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="downloadProgress">下载进度（0.0 - 1.0）</label>
+                        <input type="range" id="downloadProgress" class="form-control" min="0" max="1" step="0.01" value="{$settings.download_progress ?? 0}">
+                        <span id="progressValue">{$settings.download_progress ?? 0}</span>
+                        <button class="btn btn-primary" onclick="setDownloadProgress()">设置下载进度</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-danger" onclick="clearDownloadProgress()">清除下载进度</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-secondary" onclick="simulateDownload()">模拟下载</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>工具提示</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="toolTip">工具提示文本</label>
+                        <input type="text" id="toolTip" class="form-control" value="{$settings.tooltip ?? 'NativePHP Dock 示例'}">
+                        <button class="btn btn-primary" onclick="setToolTip()">设置工具提示</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>菜单</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="setMenu()">设置菜单</button>
+                        <p class="help-text">设置菜单后，右键点击 Dock 图标可以看到菜单。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>可见性</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="showDock()">显示 Dock 图标</button>
+                        <button class="btn btn-danger" onclick="hideDock()">隐藏 Dock 图标</button>
+                        <p class="help-text">当前状态：{$isVisible ? '可见' : '隐藏'}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 更新进度条值显示
+        document.getElementById('downloadProgress').addEventListener('input', function() {
+            document.getElementById('progressValue').textContent = this.value;
+        });
+        
+        // 设置徽章文本
+        function setBadge() {
+            const badge = document.getElementById('badgeText').value;
+            
+            fetch('/dock/setBadge', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    badge,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '设置徽章文本失败');
+            });
+        }
+        
+        // 设置徽章计数
+        function setBadgeCount() {
+            const count = document.getElementById('badgeCount').value;
+            
+            fetch('/dock/setBadgeCount', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    count,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '设置徽章计数失败');
+            });
+        }
+        
+        // 清除徽章
+        function clearBadge() {
+            fetch('/dock/clearBadge', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                    document.getElementById('badgeText').value = '';
+                    document.getElementById('badgeCount').value = '0';
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '清除徽章失败');
+            });
+        }
+        
+        // 弹跳图标
+        function bounce() {
+            const type = document.getElementById('bounceType').value;
+            
+            fetch('/dock/bounce', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    type,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '弹跳图标失败');
+            });
+        }
+        
+        // 取消弹跳
+        function cancelBounce() {
+            fetch('/dock/cancelBounce', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '取消弹跳失败');
+            });
+        }
+        
+        // 设置下载进度
+        function setDownloadProgress() {
+            const progress = document.getElementById('downloadProgress').value;
+            
+            fetch('/dock/setDownloadProgress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    progress,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '设置下载进度失败');
+            });
+        }
+        
+        // 清除下载进度
+        function clearDownloadProgress() {
+            fetch('/dock/clearDownloadProgress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                    document.getElementById('downloadProgress').value = '0';
+                    document.getElementById('progressValue').textContent = '0';
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '清除下载进度失败');
+            });
+        }
+        
+        // 模拟下载
+        function simulateDownload() {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 0.01;
+                if (progress > 1) {
+                    clearInterval(interval);
+                    clearDownloadProgress();
+                    showNotification('下载完成', '文件已下载完成');
+                    return;
+                }
+                
+                document.getElementById('downloadProgress').value = progress;
+                document.getElementById('progressValue').textContent = progress.toFixed(2);
+                
+                fetch('/dock/setDownloadProgress', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        progress,
+                    }),
+                });
+            }, 100);
+        }
+        
+        // 设置工具提示
+        function setToolTip() {
+            const tooltip = document.getElementById('toolTip').value;
+            
+            fetch('/dock/setToolTip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tooltip,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '设置工具提示失败');
+            });
+        }
+        
+        // 设置菜单
+        function setMenu() {
+            fetch('/dock/setMenu', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '设置菜单失败');
+            });
+        }
+        
+        // 显示 Dock 图标
+        function showDock() {
+            fetch('/dock/show', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '显示 Dock 图标失败');
+            });
+        }
+        
+        // 隐藏 Dock 图标
+        function hideDock() {
+            fetch('/dock/hide', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', data.message);
+                } else {
+                    showNotification('错误', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('错误', '隐藏 Dock 图标失败');
+            });
+        }
+        
+        // 显示通知
+        function showNotification(title, body) {
+            if (typeof window.NativePHP !== 'undefined') {
+                window.NativePHP.notification.send(title, body);
+            } else {
+                alert(`${title}: ${body}`);
+            }
+        }
+    </script>
+</body>
+</html>

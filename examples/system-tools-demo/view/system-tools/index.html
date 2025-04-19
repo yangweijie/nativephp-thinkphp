@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>系统工具示例</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        h2 {
+            color: #555;
+            margin-top: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>系统工具示例</h1>
+        
+        <div class="section">
+            <h2><span class="feature-icon">📁</span> 文件系统</h2>
+            <p>文件系统功能允许你浏览、创建、修改和删除文件和目录。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/system-tools/filesystem', '文件系统')">打开文件系统页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2><span class="feature-icon">💻</span> 系统</h2>
+            <p>系统功能允许你获取系统信息、执行系统命令、管理进程。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/system-tools/system', '系统')">打开系统页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2><span class="feature-icon">🔊</span> 语音识别和合成</h2>
+            <p>语音识别和合成功能允许你进行语音识别、语音合成、语音命令。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/system-tools/speech', '语音识别和合成')">打开语音识别和合成页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2><span class="feature-icon">🔋</span> 电源监控</h2>
+            <p>电源监控功能允许你监控电源状态、电池状态、系统休眠和唤醒。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/system-tools/power', '电源监控')">打开电源监控页面</button>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2><span class="feature-icon">🌐</span> 网络状态</h2>
+            <p>网络状态功能允许你监控网络连接状态、获取网络信息、测试网络连接。</p>
+            <div class="button-group">
+                <button onclick="openWindow('/system-tools/network', '网络状态')">打开网络状态页面</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 打开窗口
+        function openWindow(url, title) {
+            if (typeof window.NativePHP !== 'undefined') {
+                window.NativePHP.window.open(url, {
+                    title: title,
+                    width: 800,
+                    height: 600,
+                });
+            } else {
+                window.open(url, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>

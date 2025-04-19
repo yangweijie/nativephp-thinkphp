@@ -1,0 +1,339 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 头部样式 */
+.header {
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+/* 内容区样式 */
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 卡片样式 */
+.card {
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e1e1e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+/* 状态组样式 */
+.status-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.status-label {
+    flex: 1;
+    font-weight: 600;
+}
+
+.status-value {
+    flex: 2;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+/* 电池电量样式 */
+.battery-level {
+    width: 100%;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.battery-level-fill {
+    height: 100%;
+    background-color: #4caf50;
+    border-radius: 10px;
+    transition: width 0.3s;
+}
+
+.battery-level-text {
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+}
+
+/* 信息组样式 */
+.info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #555;
+}
+
+.info-value {
+    background-color: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #e1e1e1;
+    word-break: break-all;
+}
+
+/* 按钮样式 */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* 事件日志样式 */
+.event-log {
+    max-height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.event-item {
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    border-left: 3px solid #ddd;
+}
+
+.event-time {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 5px;
+}
+
+.event-message {
+    font-weight: 500;
+}
+
+/* 事件类型样式 */
+.event-suspend {
+    border-left-color: #3498db;
+}
+
+.event-resume {
+    border-left-color: #2ecc71;
+}
+
+.event-lock {
+    border-left-color: #e74c3c;
+}
+
+.event-unlock {
+    border-left-color: #27ae60;
+}
+
+.event-power-state-change {
+    border-left-color: #f39c12;
+}
+
+.event-screen-saver-start {
+    border-left-color: #9b59b6;
+}
+
+.event-screen-saver-stop {
+    border-left-color: #8e44ad;
+}
+
+.event-battery-level-change {
+    border-left-color: #f1c40f;
+}
+
+.event-battery-charging-change {
+    border-left-color: #d35400;
+}
+
+.event-idle-state-change {
+    border-left-color: #16a085;
+}
+
+.event-shutdown {
+    border-left-color: #c0392b;
+}
+
+.event-reboot {
+    border-left-color: #e67e22;
+}
+
+.event-display-added {
+    border-left-color: #1abc9c;
+}
+
+.event-display-removed {
+    border-left-color: #e84393;
+}
+
+.event-display-layout-change {
+    border-left-color: #6c5ce7;
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .header h1 {
+        font-size: 20px;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .card-actions {
+        width: 100%;
+    }
+    
+    .status-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .status-label {
+        width: 100%;
+    }
+    
+    .status-value {
+        width: 100%;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+}

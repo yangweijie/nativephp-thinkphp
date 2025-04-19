@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>版本历史 - {$filename}</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        .version-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .version-info {
+            flex: 1;
+        }
+        
+        .version-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .version-list {
+            margin-top: 20px;
+        }
+        
+        .version-item {
+            display: flex;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            transition: background-color 0.2s;
+        }
+        
+        .version-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .version-meta {
+            flex: 1;
+        }
+        
+        .version-date {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .version-details {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        
+        .version-comment {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        .version-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-left: 15px;
+        }
+        
+        .version-buttons button {
+            padding: 6px 12px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        
+        .create-version-form {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .empty-versions {
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        
+        .compare-form {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border: 1px solid #d0e5ff;
+            border-radius: 4px;
+        }
+        
+        .compare-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .compare-selects {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .compare-select {
+            flex: 1;
+        }
+        
+        .compare-select label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .compare-select select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .compare-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>版本历史 - {$filename}</h1>
+            <div class="actions">
+                <a href="/file/view?path={:urlencode($path)}" class="btn">返回文件</a>
+                <a href="/file/index?path={:urlencode(dirname($path))}" class="btn">返回目录</a>
+            </div>
+        </div>
+        
+        <div class="version-header">
+            <div class="version-info">
+                <h2>文件路径: {$path}</h2>
+            </div>
+            <div class="version-actions">
+                {if $canCreateVersion}
+                <button onclick="toggleCreateForm()" class="btn btn-primary">创建新版本</button>
+                {/if}
+                {if !empty($versions)}
+                <button onclick="toggleCompareForm()" class="btn">比较版本</button>
+                <button onclick="clearVersions()" class="btn btn-secondary">清除所有版本</button>
+                {/if}
+            </div>
+        </div>
+        
+        {if $canCreateVersion}
+        <div class="create-version-form" id="createVersionForm" style="display: none;">
+            <h3>创建新版本</h3>
+            <div class="form-group">
+                <label for="versionComment">版本注释 (可选):</label>
+                <textarea id="versionComment" placeholder="输入版本注释，描述此版本的变更内容"></textarea>
+            </div>
+            <div class="form-actions">
+                <button onclick="cancelCreate()" class="btn btn-secondary">取消</button>
+                <button onclick="createVersion()" class="btn btn-primary">保存版本</button>
+            </div>
+        </div>
+        {/if}
+        
+        {if !empty($versions)}
+        <div class="compare-form" id="compareForm" style="display: none;">
+            <div class="compare-title">比较版本</div>
+            <div class="compare-selects">
+                <div class="compare-select">
+                    <label for="compareVersion1">旧版本:</label>
+                    <select id="compareVersion1">
+                        {volist name="versions" id="version"}
+                        <option value="{$version.id}">{:date('Y-m-d H:i:s', $version.created)} {$version.comment ? '- ' . $version.comment : ''}</option>
+                        {/volist}
+                    </select>
+                </div>
+                <div class="compare-select">
+                    <label for="compareVersion2">新版本:</label>
+                    <select id="compareVersion2">
+                        {volist name="versions" id="version" offset="0" length="1"}
+                        <option value="{$version.id}" selected>{:date('Y-m-d H:i:s', $version.created)} {$version.comment ? '- ' . $version.comment : ''}</option>
+                        {/volist}
+                        {volist name="versions" id="version" offset="1"}
+                        <option value="{$version.id}">{:date('Y-m-d H:i:s', $version.created)} {$version.comment ? '- ' . $version.comment : ''}</option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+            <div class="compare-actions">
+                <button onclick="compareVersions()" class="btn btn-primary">比较</button>
+            </div>
+        </div>
+        
+        <div class="version-list">
+            {volist name="versions" id="version"}
+            <div class="version-item">
+                <div class="version-meta">
+                    <div class="version-date">{:date('Y-m-d H:i:s', $version.created)}</div>
+                    <div class="version-details">
+                        <div>大小: {:format_size($version.size)}</div>
+                        <div>版本ID: {$version.id}</div>
+                    </div>
+                    {if $version.comment}
+                    <div class="version-comment">{$version.comment}</div>
+                    {/if}
+                </div>
+                <div class="version-buttons">
+                    <a href="/version/view?path={:urlencode($path)}&version={$version.id}" class="btn">查看</a>
+                    <button onclick="restoreVersion('{$version.id}')" class="btn btn-primary">恢复</button>
+                    <button onclick="deleteVersion('{$version.id}')" class="btn btn-secondary">删除</button>
+                </div>
+            </div>
+            {/volist}
+        </div>
+        {else}
+        <div class="empty-versions">
+            <p>此文件暂无版本历史</p>
+            {if $canCreateVersion}
+            <p>点击"创建新版本"按钮来保存当前文件状态</p>
+            {else}
+            <p>此文件类型不支持版本控制</p>
+            {/if}
+        </div>
+        {/if}
+    </div>
+    
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">标题</h2>
+            <div id="modalBody">内容</div>
+            <div id="modalFooter">
+                <button id="modalConfirm" class="btn btn-primary">确定</button>
+                <button id="modalCancel" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+    <script>
+        // 初始化模态框
+        document.addEventListener('DOMContentLoaded', function() {
+            initModal();
+        });
+        
+        // 显示/隐藏创建版本表单
+        function toggleCreateForm() {
+            const form = document.getElementById('createVersionForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            
+            // 隐藏比较表单
+            const compareForm = document.getElementById('compareForm');
+            if (compareForm) {
+                compareForm.style.display = 'none';
+            }
+        }
+        
+        // 取消创建版本
+        function cancelCreate() {
+            document.getElementById('createVersionForm').style.display = 'none';
+            document.getElementById('versionComment').value = '';
+        }
+        
+        // 创建版本
+        function createVersion() {
+            const comment = document.getElementById('versionComment').value;
+            const path = '{$path}';
+            
+            fetch('/version/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'path=' + encodeURIComponent(path) + '&comment=' + encodeURIComponent(comment),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('成功', '版本创建成功');
+                    window.location.reload();
+                } else {
+                    showNotification('错误', data.message || '创建版本失败');
+                }
+            })
+            .catch(error => {
+                showNotification('错误', error.message);
+            });
+        }
+        
+        // 恢复版本
+        function restoreVersion(versionId) {
+            showModal('恢复版本', `
+                <p>确定要将文件恢复到此版本吗？</p>
+                <p>当前文件内容将被覆盖，但会自动创建一个备份。</p>
+            `, function() {
+                const path = '{$path}';
+                
+                fetch('/version/restore', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path) + '&version=' + encodeURIComponent(versionId),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('成功', '文件已恢复到选定的版本');
+                        window.location.reload();
+                    } else {
+                        showNotification('错误', data.message || '恢复版本失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            });
+        }
+        
+        // 删除版本
+        function deleteVersion(versionId) {
+            showModal('删除版本', `
+                <p>确定要删除此版本吗？</p>
+                <p>此操作不可撤销。</p>
+            `, function() {
+                const path = '{$path}';
+                
+                fetch('/version/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path) + '&version=' + encodeURIComponent(versionId),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('成功', '版本已删除');
+                        window.location.reload();
+                    } else {
+                        showNotification('错误', data.message || '删除版本失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            });
+        }
+        
+        // 清除所有版本
+        function clearVersions() {
+            showModal('清除所有版本', `
+                <p>确定要清除此文件的所有版本历史吗？</p>
+                <p>此操作不可撤销。</p>
+            `, function() {
+                const path = '{$path}';
+                
+                fetch('/version/clear', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'path=' + encodeURIComponent(path),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('成功', '所有版本已清除');
+                        window.location.reload();
+                    } else {
+                        showNotification('错误', data.message || '清除版本失败');
+                    }
+                })
+                .catch(error => {
+                    showNotification('错误', error.message);
+                });
+            });
+        }
+        
+        // 显示/隐藏比较表单
+        function toggleCompareForm() {
+            const form = document.getElementById('compareForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            
+            // 隐藏创建表单
+            const createForm = document.getElementById('createVersionForm');
+            if (createForm) {
+                createForm.style.display = 'none';
+            }
+        }
+        
+        // 比较版本
+        function compareVersions() {
+            const version1 = document.getElementById('compareVersion1').value;
+            const version2 = document.getElementById('compareVersion2').value;
+            const path = '{$path}';
+            
+            if (version1 === version2) {
+                showNotification('错误', '请选择两个不同的版本进行比较');
+                return;
+            }
+            
+            window.location.href = '/version/compare?path=' + encodeURIComponent(path) + 
+                                  '&version1=' + encodeURIComponent(version1) + 
+                                  '&version2=' + encodeURIComponent(version2);
+        }
+    </script>
+</body>
+</html>

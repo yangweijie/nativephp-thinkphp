@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>子进程管理示例</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .row {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .col {
+            flex: 1;
+            padding: 0 10px;
+        }
+        .panel {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .panel-header {
+            background-color: #f8f8f8;
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+        }
+        .panel-body {
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-family: Consolas, monospace;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.danger {
+            background-color: #f44336;
+        }
+        button.danger:hover {
+            background-color: #d32f2f;
+        }
+        button.info {
+            background-color: #2196F3;
+        }
+        button.info:hover {
+            background-color: #0b7dda;
+        }
+        .process-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .process-item:last-child {
+            border-bottom: none;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 7px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: white;
+        }
+        .badge-success {
+            background-color: #4CAF50;
+        }
+        .badge-danger {
+            background-color: #f44336;
+        }
+        #events {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        #events div {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        #events div:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>子进程管理示例</h1>
+        
+        <div class="row">
+            <div class="col">
+                <div class="panel">
+                    <div class="panel-header">启动新进程</div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label for="cmd">命令</label>
+                            <input type="text" id="cmd" placeholder="输入要执行的命令">
+                        </div>
+                        <div class="form-group">
+                            <label for="alias">别名</label>
+                            <input type="text" id="alias" placeholder="输入进程别名">
+                        </div>
+                        <button id="start-process">启动进程</button>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header">事件日志</div>
+                    <div class="panel-body">
+                        <div id="events"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col">
+                <div class="panel">
+                    <div class="panel-header">
+                        进程列表
+                        <button class="info" style="float: right; padding: 2px 8px;" id="refresh-processes">刷新</button>
+                    </div>
+                    <div class="panel-body">
+                        <div id="process-list">
+                            <div class="process-item">
+                                <p>暂无进程</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header">进程输出</div>
+                    <div class="panel-body">
+                        <pre id="process-output">选择一个进程查看输出</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 刷新进程列表
+        function refreshProcesses() {
+            fetch('/child-process-demo/all')
+                .then(response => response.json())
+                .then(data => {
+                    const processList = document.getElementById('process-list');
+                    
+                    if (Object.keys(data.processes).length === 0) {
+                        processList.innerHTML = '<div class="process-item"><p>暂无进程</p></div>';
+                        return;
+                    }
+                    
+                    let html = '';
+                    for (const [alias, process] of Object.entries(data.processes)) {
+                        const status = process.running ? 
+                            '<span class="badge badge-success">运行中</span>' : 
+                            '<span class="badge badge-danger">已停止</span>';
+                        
+                        html += `
+                            <div class="process-item">
+                                <p><strong>别名:</strong> ${alias} ${status}</p>
+                                <p><strong>PID:</strong> ${process.pid || 'N/A'}</p>
+                                <p><strong>命令:</strong> ${process.cmd}</p>
+                                <button class="info view-output" data-alias="${alias}">查看输出</button>
+                                <button class="danger stop-process" data-alias="${alias}">停止进程</button>
+                            </div>
+                        `;
+                    }
+                    
+                    processList.innerHTML = html;
+                    
+                    // 添加事件监听器
+                    document.querySelectorAll('.view-output').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const alias = this.getAttribute('data-alias');
+                            viewProcessOutput(alias);
+                        });
+                    });
+                    
+                    document.querySelectorAll('.stop-process').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const alias = this.getAttribute('data-alias');
+                            stopProcess(alias);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('获取进程列表失败:', error);
+                });
+        }
+        
+        // 查看进程输出
+        function viewProcessOutput(alias) {
+            fetch(`/child-process-demo/output?alias=${alias}`)
+                .then(response => response.json())
+                .then(data => {
+                    const outputElement = document.getElementById('process-output');
+                    let output = `=== ${alias} 的输出 ===\n\n`;
+                    
+                    if (data.output) {
+                        output += `标准输出:\n${data.output}\n\n`;
+                    } else {
+                        output += `标准输出: 无\n\n`;
+                    }
+                    
+                    if (data.error) {
+                        output += `错误输出:\n${data.error}`;
+                    } else {
+                        output += `错误输出: 无`;
+                    }
+                    
+                    outputElement.textContent = output;
+                })
+                .catch(error => {
+                    console.error('获取进程输出失败:', error);
+                });
+        }
+        
+        // 启动进程
+        function startProcess() {
+            const cmd = document.getElementById('cmd').value;
+            const alias = document.getElementById('alias').value;
+            
+            if (!cmd || !alias) {
+                alert('命令和别名不能为空');
+                return;
+            }
+            
+            fetch('/child-process-demo/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ cmd, alias }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('cmd').value = '';
+                        document.getElementById('alias').value = '';
+                        refreshProcesses();
+                    } else {
+                        alert('启动进程失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('启动进程失败:', error);
+                });
+        }
+        
+        // 停止进程
+        function stopProcess(alias) {
+            fetch('/child-process-demo/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ alias }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        refreshProcesses();
+                    } else {
+                        alert('停止进程失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('停止进程失败:', error);
+                });
+        }
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 刷新进程列表
+            refreshProcesses();
+            
+            // 添加事件监听器
+            document.getElementById('start-process').addEventListener('click', startProcess);
+            document.getElementById('refresh-processes').addEventListener('click', refreshProcesses);
+            
+            // 定时刷新进程列表
+            setInterval(refreshProcesses, 5000);
+        });
+    </script>
+</body>
+</html>
