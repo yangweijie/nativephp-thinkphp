@@ -106,3 +106,189 @@ test('Ipc 可以处理多个通道', function () {
     expect($channel1Data)->toBe('data-1');
     expect($channel2Data)->toBe('data-2');
 });
+
+test('IPC 可以发送和接收消息', function() {
+    $native = mockNative();
+    $ipc = new Ipc($native);
+    
+    $received = null;
+    
+    $ipc->on('test-channel', function($data) use (&$received) {
+        $received = $data;
+    });
+    
+    $message = ['type' => 'test', 'content' => 'Hello'];
+    $ipc->send('test-channel', $message);
+    
+    expect($received)->toBe($message);
+});
+
+test('IPC 支持双向通信', function() {
+    $native = mockNative();
+    $ipc = new Ipc($native);
+    
+    $response = null;
+    
+    $ipc->on('request-channel', function($data) use ($ipc) {
+        $ipc->send('response-channel', [
+            'status' => 'success',
+            'data' => $data
+        ]);
+    });
+    
+    $ipc->on('response-channel', function($data) use (&$response) {
+        $response = $data;
+    });
+    
+    $request = ['action' => 'getData'];
+    $ipc->send('request-channel', $request);
+    
+    expect($response)->toMatchArray([
+        'status' => 'success',
+        'data' => $request
+    ]);
+});
+
+test('IPC 可以移除监听器', function() {
+    $native = mockNative();
+    $ipc = new Ipc($native);
+    
+    $callCount = 0;
+    $handler = function() use (&$callCount) {
+        $callCount++;
+    };
+    
+    $ipc->on('remove-test', $handler);
+    $ipc->send('remove-test');
+    expect($callCount)->toBe(1);
+    
+    $ipc->off('remove-test', $handler);
+    $ipc->send('remove-test');
+    expect($callCount)->toBe(1);
+});
+
+test('IPC 支持一次性监听', function() {
+    $native = mockNative();
+    $ipc = new Ipc($native);
+    
+    $callCount = 0;
+    
+    $ipc->once('once-test', function() use (&$callCount) {
+        $callCount++;
+    });
+    
+    $ipc->send('once-test');
+    $ipc->send('once-test');
+    
+    expect($callCount)->toBe(1);
+});
+
+test('IPC 可以处理异步响应', function() {
+    $native = mockNative();
+    $ipc = new Ipc($native);
+    
+    $done = false;
+    
+    $ipc->on('async-request', function($data) use ($ipc) {
+        // 模拟异步操作
+        usleep(100000); // 100ms
+        $ipc->send('async-response', [
+            'processed' => $data
+        ]);
+    });
+    
+    $ipc->on('async-response', function() use (&$done) {
+        $done = true;
+    });
+    
+    $ipc->send('async-request', ['task' => 'process']);
+    
+    // 等待异步响应
+    $startTime = microtime(true);
+    while (!$done && microtime(true) - $startTime < 1) {
+        usleep(1000);
+    }
+    
+    expect($done)->toBeTrue();
+});
+
+test('IPC 可以处理错误情况', function() {
+    $native = mockNative();
+    $ipc = new Ipc($native);
+    
+    $error = null;
+    
+    $ipc->on('error-channel', function($data) use ($ipc) {
+        if (!isset($data['required'])) {
+            $ipc->send('error-response', [
+                'error' => 'Missing required field'
+            ]);
+        }
+    });
+    
+    $ipc->on('error-response', function($data) use (&$error) {
+        $error = $data['error'];
+    });
+    
+    $ipc->send('error-channel', ['optional' => 'value']);
+    
+    expect($error)->toBe('Missing required field');
+});
+
+test('IPC 支持广播消息', function() {
+    $native = mockNative();
+    $ipc = new Ipc($native);
+    
+    $receivers = [
+        'receiver1' => false,
+        'receiver2' => false,
+        'receiver3' => false
+    ];
+    
+    foreach ($receivers as $id => $received) {
+        $ipc->on('broadcast', function() use ($id, &$receivers) {
+            $receivers[$id] = true;
+        });
+    }
+    
+    $ipc->broadcast('broadcast', ['message' => 'Hello all']);
+    
+    expect($receivers)->toMatchArray([
+        'receiver1' => true,
+        'receiver2' => true,
+        'receiver3' => true
+    ]);
+});
+
+// 辅助函数：创建模拟 Native 实例
+function mockNative() {
+    return new class {
+        protected $channels = [];
+        
+        public function on($channel, $callback) {
+            if (!isset($this->channels[$channel])) {
+                $this->channels[$channel] = [];
+            }
+            $this->channels[$channel][] = $callback;
+        }
+        
+        public function emit($channel, $data = null) {
+            if (isset($this->channels[$channel])) {
+                foreach ($this->channels[$channel] as $callback) {
+                    $callback($data);
+                }
+            }
+        }
+        
+        public function removeListener($channel, $callback) {
+            if (isset($this->channels[$channel])) {
+                $this->channels[$channel] = array_filter(
+                    $this->channels[$channel],
+                    function($existingCallback) use ($callback) {
+                        return $existingCallback !== $callback;
+                    }
+                );
+            }
+        }
+    };
+}

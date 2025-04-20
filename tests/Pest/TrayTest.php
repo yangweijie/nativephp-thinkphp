@@ -194,3 +194,211 @@ test('Tray 可以显示和隐藏', function () {
     expect($tray->show())->toBeInstanceOf(MockTray::class);
     expect($tray->hide())->toBeInstanceOf(MockTray::class);
 });
+
+test('托盘可以创建和配置', function() {
+    $native = mockNative();
+    $tray = new Tray($native);
+    
+    $tray->setIcon('/path/to/icon.png')
+         ->setTooltip('测试托盘')
+         ->create();
+         
+    $state = $tray->getState();
+    expect($state['icon'])->toBe('/path/to/icon.png');
+    expect($state['tooltip'])->toBe('测试托盘');
+});
+
+test('托盘可以设置和获取菜单', function() {
+    $native = mockNative();
+    $tray = new Tray($native);
+    
+    $menu = [
+        ['label' => '打开', 'click' => 'open'],
+        ['type' => 'separator'],
+        ['label' => '退出', 'click' => 'quit']
+    ];
+    
+    $tray->setMenu($menu);
+    expect($tray->getMenu())->toBe($menu);
+});
+
+test('托盘支持动态更新', function() {
+    $native = mockNative();
+    $tray = new Tray($native);
+    
+    $tray->create();
+    
+    $updates = [
+        'setIcon' => '/new/icon.png',
+        'setTooltip' => '新的提示',
+        'setContextMenu' => [
+            ['label' => '新菜单项', 'click' => 'newAction']
+        ]
+    ];
+    
+    foreach ($updates as $method => $value) {
+        $tray->$method($value);
+    }
+    
+    $state = $tray->getState();
+    expect($state['icon'])->toBe('/new/icon.png');
+    expect($state['tooltip'])->toBe('新的提示');
+    expect($state['menu'][0]['label'])->toBe('新菜单项');
+});
+
+test('托盘支持点击事件', function() {
+    $native = mockNative();
+    $tray = new Tray($native);
+    
+    $clicked = false;
+    
+    $tray->onClick(function() use (&$clicked) {
+        $clicked = true;
+    });
+    
+    $native->emit('tray-click');
+    
+    expect($clicked)->toBeTrue();
+});
+
+test('托盘支持双击事件', function() {
+    $native = mockNative();
+    $tray = new Tray($native);
+    
+    $doubleClicked = false;
+    
+    $tray->onDoubleClick(function() use (&$doubleClicked) {
+        $doubleClicked = true;
+    });
+    
+    $native->emit('tray-double-click');
+    
+    expect($doubleClicked)->toBeTrue();
+});
+
+test('托盘支持右键菜单事件', function() {
+    $native = mockNative();
+    $tray = new Tray($native);
+    
+    $rightClicked = false;
+    
+    $tray->onRightClick(function() use (&$rightClicked) {
+        $rightClicked = true;
+    });
+    
+    $native->emit('tray-right-click');
+    
+    expect($rightClicked)->toBeTrue();
+});
+
+test('托盘可以处理菜单项点击', function() {
+    $native = mockNative();
+    $tray = new Tray($native);
+    
+    $actionTriggered = false;
+    
+    $menu = [
+        [
+            'label' => '测试',
+            'click' => function() use (&$actionTriggered) {
+                $actionTriggered = true;
+            }
+        ]
+    ];
+    
+    $tray->setMenu($menu);
+    $native->emit('tray-menu-click', ['menuItem' => 0]);
+    
+    expect($actionTriggered)->toBeTrue();
+});
+
+test('托盘支持子菜单', function() {
+    $native = mockNative();
+    $tray = new Tray($native);
+    
+    $menu = [
+        [
+            'label' => '父菜单',
+            'submenu' => [
+                ['label' => '子菜单1'],
+                ['label' => '子菜单2']
+            ]
+        ]
+    ];
+    
+    $tray->setMenu($menu);
+    $state = $tray->getState();
+    
+    expect($state['menu'][0]['submenu'])->toHaveCount(2);
+    expect($state['menu'][0]['submenu'][0]['label'])->toBe('子菜单1');
+});
+
+test('托盘支持菜单项状态', function() {
+    $native = mockNative();
+    $tray = new Tray($native);
+    
+    $menu = [
+        [
+            'label' => '可用项',
+            'enabled' => true
+        ],
+        [
+            'label' => '禁用项',
+            'enabled' => false
+        ],
+        [
+            'label' => '选中项',
+            'checked' => true
+        ]
+    ];
+    
+    $tray->setMenu($menu);
+    $state = $tray->getState();
+    
+    expect($state['menu'][0]['enabled'])->toBeTrue();
+    expect($state['menu'][1]['enabled'])->toBeFalse();
+    expect($state['menu'][2]['checked'])->toBeTrue();
+});
+
+test('托盘可以销毁', function() {
+    $native = mockNative();
+    $tray = new Tray($native);
+    
+    $tray->create();
+    expect($tray->isCreated())->toBeTrue();
+    
+    $tray->destroy();
+    expect($tray->isCreated())->toBeFalse();
+});
+
+// 辅助函数：创建模拟 Native 实例
+function mockNative() {
+    return new class {
+        protected $listeners = [];
+        protected $lastEmitted;
+        
+        public function on($event, $callback) {
+            if (!isset($this->listeners[$event])) {
+                $this->listeners[$event] = [];
+            }
+            $this->listeners[$event][] = $callback;
+        }
+        
+        public function emit($event, $data = null) {
+            $this->lastEmitted = [
+                'event' => $event,
+                'data' => $data
+            ];
+            
+            if (isset($this->listeners[$event])) {
+                foreach ($this->listeners[$event] as $callback) {
+                    $callback($data);
+                }
+            }
+        }
+        
+        public function getLastEmitted() {
+            return $this->lastEmitted;
+        }
+    };
+}

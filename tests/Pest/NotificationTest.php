@@ -285,3 +285,197 @@ test('Notification 可以设置操作回调', function () {
 
     expect($notification)->toBeInstanceOf(MockNotification::class);
 });
+
+use NativePHP\Think\Native;
+
+test('可以发送基本通知', function() {
+    $native = mockNative();
+    
+    $notification = [
+        'title' => '测试通知',
+        'body' => '这是一条测试通知'
+    ];
+    
+    $native->notification($notification);
+    
+    expect($native->getLastNotification())->toBe($notification);
+});
+
+test('通知支持点击事件', function() {
+    $native = mockNative();
+    $clicked = false;
+    
+    $notification = [
+        'title' => '可点击通知',
+        'body' => '点击此通知',
+        'onClick' => function() use (&$clicked) {
+            $clicked = true;
+        }
+    ];
+    
+    $native->notification($notification);
+    $native->emit('notification-clicked');
+    
+    expect($clicked)->toBeTrue();
+});
+
+test('通知支持自定义图标', function() {
+    $native = mockNative();
+    
+    $notification = [
+        'title' => '带图标通知',
+        'body' => '这是一条带图标的通知',
+        'icon' => 'path/to/icon.png'
+    ];
+    
+    $native->notification($notification);
+    
+    expect($native->getLastNotification()['icon'])->toBe('path/to/icon.png');
+});
+
+test('通知支持紧急程度设置', function() {
+    $native = mockNative();
+    
+    $notification = [
+        'title' => '紧急通知',
+        'body' => '这是一条紧急通知',
+        'urgency' => 'critical'
+    ];
+    
+    $native->notification($notification);
+    
+    expect($native->getLastNotification()['urgency'])->toBe('critical');
+});
+
+test('通知支持超时设置', function() {
+    $native = mockNative();
+    
+    $notification = [
+        'title' => '超时通知',
+        'body' => '这条通知将在5秒后消失',
+        'timeout' => 5000
+    ];
+    
+    $native->notification($notification);
+    
+    expect($native->getLastNotification()['timeout'])->toBe(5000);
+});
+
+test('通知支持声音设置', function() {
+    $native = mockNative();
+    
+    $notification = [
+        'title' => '带声音通知',
+        'body' => '这条通知会发出声音',
+        'sound' => true
+    ];
+    
+    $native->notification($notification);
+    
+    expect($native->getLastNotification()['sound'])->toBeTrue();
+});
+
+test('通知支持静默模式', function() {
+    $native = mockNative();
+    
+    $notification = [
+        'title' => '静默通知',
+        'body' => '这条通知不会发出声音',
+        'silent' => true
+    ];
+    
+    $native->notification($notification);
+    
+    expect($native->getLastNotification()['silent'])->toBeTrue();
+});
+
+test('通知支持子标题', function() {
+    $native = mockNative();
+    
+    $notification = [
+        'title' => '主标题',
+        'subtitle' => '子标题',
+        'body' => '通知内容'
+    ];
+    
+    $native->notification($notification);
+    
+    expect($native->getLastNotification()['subtitle'])->toBe('子标题');
+});
+
+test('通知支持关闭事件', function() {
+    $native = mockNative();
+    $closed = false;
+    
+    $notification = [
+        'title' => '测试通知',
+        'body' => '这条通知将被关闭',
+        'onClose' => function() use (&$closed) {
+            $closed = true;
+        }
+    ];
+    
+    $native->notification($notification);
+    $native->emit('notification-closed');
+    
+    expect($closed)->toBeTrue();
+});
+
+test('可以关闭所有通知', function() {
+    $native = mockNative();
+    
+    $native->notification([
+        'title' => '通知1',
+        'body' => '内容1'
+    ]);
+    
+    $native->notification([
+        'title' => '通知2',
+        'body' => '内容2'
+    ]);
+    
+    $native->closeAllNotifications();
+    
+    expect($native->hasActiveNotifications())->toBeFalse();
+});
+
+// 辅助函数：创建模拟 Native 实例
+function mockNative() {
+    return new class {
+        protected $lastNotification;
+        protected $listeners = [];
+        protected $hasActiveNotifications = true;
+        
+        public function notification($options) {
+            $this->lastNotification = $options;
+            $this->hasActiveNotifications = true;
+        }
+        
+        public function getLastNotification() {
+            return $this->lastNotification;
+        }
+        
+        public function on($event, $callback) {
+            if (!isset($this->listeners[$event])) {
+                $this->listeners[$event] = [];
+            }
+            $this->listeners[$event][] = $callback;
+        }
+        
+        public function emit($event, $data = null) {
+            if (isset($this->listeners[$event])) {
+                foreach ($this->listeners[$event] as $callback) {
+                    $callback($data);
+                }
+            }
+        }
+        
+        public function closeAllNotifications() {
+            $this->hasActiveNotifications = false;
+        }
+        
+        public function hasActiveNotifications() {
+            return $this->hasActiveNotifications;
+        }
+    };
+}

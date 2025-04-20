@@ -120,3 +120,232 @@ test('Menu 可以切换菜单项状态', function () {
 
     expect($menu)->toBeInstanceOf(Menu::class);
 });
+
+test('可以创建基本菜单', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        ['label' => '文件'],
+        ['label' => '编辑'],
+        ['label' => '视图']
+    ];
+    
+    $menu->create($template);
+    
+    expect($menu->getItems())->toBe($template);
+});
+
+test('可以创建带子菜单的菜单', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        [
+            'label' => '文件',
+            'submenu' => [
+                ['label' => '新建'],
+                ['label' => '打开'],
+                ['label' => '保存']
+            ]
+        ]
+    ];
+    
+    $menu->create($template);
+    
+    expect($menu->getItems()[0]['submenu'])->toHaveCount(3);
+});
+
+test('可以创建带快捷键的菜单项', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        [
+            'label' => '编辑',
+            'submenu' => [
+                ['label' => '复制', 'accelerator' => 'CommandOrControl+C'],
+                ['label' => '粘贴', 'accelerator' => 'CommandOrControl+V'],
+                ['label' => '剪切', 'accelerator' => 'CommandOrControl+X']
+            ]
+        ]
+    ];
+    
+    $menu->create($template);
+    
+    $submenu = $menu->getItems()[0]['submenu'];
+    expect($submenu[0]['accelerator'])->toBe('CommandOrControl+C');
+});
+
+test('可以创建带分隔符的菜单', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        ['label' => '文件'],
+        ['type' => 'separator'],
+        ['label' => '编辑']
+    ];
+    
+    $menu->create($template);
+    
+    expect($menu->getItems()[1]['type'])->toBe('separator');
+});
+
+test('菜单项支持点击事件', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $clicked = false;
+    
+    $template = [
+        [
+            'label' => '测试',
+            'click' => function() use (&$clicked) {
+                $clicked = true;
+            }
+        ]
+    ];
+    
+    $menu->create($template);
+    $native->emit('menu-click', ['menuItem' => 0]);
+    
+    expect($clicked)->toBeTrue();
+});
+
+test('可以动态更新菜单项', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        ['label' => '原始项']
+    ];
+    
+    $menu->create($template);
+    
+    $menu->updateItem(0, ['label' => '更新项']);
+    
+    expect($menu->getItems()[0]['label'])->toBe('更新项');
+});
+
+test('可以动态插入菜单项', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        ['label' => '项目1'],
+        ['label' => '项目3']
+    ];
+    
+    $menu->create($template);
+    
+    $menu->insertItem(1, ['label' => '项目2']);
+    
+    expect($menu->getItems())->toHaveCount(3);
+    expect($menu->getItems()[1]['label'])->toBe('项目2');
+});
+
+test('可以动态删除菜单项', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        ['label' => '项目1'],
+        ['label' => '项目2'],
+        ['label' => '项目3']
+    ];
+    
+    $menu->create($template);
+    
+    $menu->removeItem(1);
+    
+    expect($menu->getItems())->toHaveCount(2);
+    expect($menu->getItems()[1]['label'])->toBe('项目3');
+});
+
+test('菜单项支持启用/禁用状态', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        ['label' => '测试', 'enabled' => true]
+    ];
+    
+    $menu->create($template);
+    
+    $menu->updateItem(0, ['enabled' => false]);
+    
+    expect($menu->getItems()[0]['enabled'])->toBeFalse();
+});
+
+test('菜单项支持选中状态', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        ['label' => '测试', 'type' => 'checkbox', 'checked' => false]
+    ];
+    
+    $menu->create($template);
+    
+    $menu->updateItem(0, ['checked' => true]);
+    
+    expect($menu->getItems()[0]['checked'])->toBeTrue();
+});
+
+test('菜单项支持单选组', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        [
+            'label' => '选项',
+            'submenu' => [
+                ['label' => '选项1', 'type' => 'radio', 'checked' => true],
+                ['label' => '选项2', 'type' => 'radio', 'checked' => false],
+                ['label' => '选项3', 'type' => 'radio', 'checked' => false]
+            ]
+        ]
+    ];
+    
+    $menu->create($template);
+    
+    expect($menu->getItems()[0]['submenu'][0]['checked'])->toBeTrue();
+});
+
+test('菜单支持上下文菜单', function() {
+    $native = mockNative();
+    $menu = new Menu($native);
+    
+    $template = [
+        ['label' => '剪切'],
+        ['label' => '复制'],
+        ['label' => '粘贴']
+    ];
+    
+    $menu->createContextMenu($template);
+    
+    expect($menu->getContextMenuItems())->toBe($template);
+});
+
+// 辅助函数：创建模拟 Native 实例
+function mockNative() {
+    return new class {
+        protected $listeners = [];
+        
+        public function on($event, $callback) {
+            if (!isset($this->listeners[$event])) {
+                $this->listeners[$event] = [];
+            }
+            $this->listeners[$event][] = $callback;
+        }
+        
+        public function emit($event, $data = null) {
+            if (isset($this->listeners[$event])) {
+                foreach ($this->listeners[$event] as $callback) {
+                    $callback($data);
+                }
+            }
+        }
+    };
+}

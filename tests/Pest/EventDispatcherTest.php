@@ -101,3 +101,186 @@ test('EventDispatcher 可以监听和触发事件', function () {
 
     expect($receivedPayload)->toBe($payload);
 });
+
+test('事件调度器可以注册和触发事件', function() {
+    $native = mockNative();
+    $dispatcher = new EventDispatcher($native);
+    
+    $called = false;
+    $payload = null;
+    
+    $dispatcher->on('test-event', function($data) use (&$called, &$payload) {
+        $called = true;
+        $payload = $data;
+    });
+    
+    $testData = ['message' => 'Hello World'];
+    $dispatcher->dispatch('test-event', $testData);
+    
+    expect($called)->toBeTrue();
+    expect($payload)->toBe($testData);
+});
+
+test('事件调度器支持一次性事件', function() {
+    $native = mockNative();
+    $dispatcher = new EventDispatcher($native);
+    
+    $callCount = 0;
+    
+    $dispatcher->once('one-time-event', function() use (&$callCount) {
+        $callCount++;
+    });
+    
+    $dispatcher->dispatch('one-time-event');
+    $dispatcher->dispatch('one-time-event');
+    
+    expect($callCount)->toBe(1);
+});
+
+test('事件调度器可以移除监听器', function() {
+    $native = mockNative();
+    $dispatcher = new EventDispatcher($native);
+    
+    $callCount = 0;
+    
+    $handler = function() use (&$callCount) {
+        $callCount++;
+    };
+    
+    $dispatcher->on('test-event', $handler);
+    $dispatcher->dispatch('test-event');
+    expect($callCount)->toBe(1);
+    
+    $dispatcher->off('test-event', $handler);
+    $dispatcher->dispatch('test-event');
+    expect($callCount)->toBe(1);
+});
+
+test('事件调度器支持多个监听器', function() {
+    $native = mockNative();
+    $dispatcher = new EventDispatcher($native);
+    
+    $results = [];
+    
+    $dispatcher->on('multi-event', function() use (&$results) {
+        $results[] = 'first';
+    });
+    
+    $dispatcher->on('multi-event', function() use (&$results) {
+        $results[] = 'second';
+    });
+    
+    $dispatcher->dispatch('multi-event');
+    
+    expect($results)->toBe(['first', 'second']);
+});
+
+test('事件调度器支持通配符事件', function() {
+    $native = mockNative();
+    $dispatcher = new EventDispatcher($native);
+    
+    $events = [];
+    
+    $dispatcher->on('user.*', function($data, $event) use (&$events) {
+        $events[] = $event;
+    });
+    
+    $dispatcher->dispatch('user.login');
+    $dispatcher->dispatch('user.logout');
+    
+    expect($events)->toBe(['user.login', 'user.logout']);
+});
+
+test('事件调度器支持事件优先级', function() {
+    $native = mockNative();
+    $dispatcher = new EventDispatcher($native);
+    
+    $sequence = [];
+    
+    $dispatcher->on('priority-event', function() use (&$sequence) {
+        $sequence[] = 'normal';
+    });
+    
+    $dispatcher->on('priority-event', function() use (&$sequence) {
+        $sequence[] = 'high';
+    }, 10);
+    
+    $dispatcher->on('priority-event', function() use (&$sequence) {
+        $sequence[] = 'low';
+    }, -10);
+    
+    $dispatcher->dispatch('priority-event');
+    
+    expect($sequence)->toBe(['high', 'normal', 'low']);
+});
+
+test('事件调度器可以停止事件传播', function() {
+    $native = mockNative();
+    $dispatcher = new EventDispatcher($native);
+    
+    $called = [];
+    
+    $dispatcher->on('stop-event', function($event) use (&$called) {
+        $called[] = 'first';
+        $event->stopPropagation();
+    });
+    
+    $dispatcher->on('stop-event', function() use (&$called) {
+        $called[] = 'second';
+    });
+    
+    $dispatcher->dispatch('stop-event');
+    
+    expect($called)->toBe(['first']);
+});
+
+test('事件调度器支持订阅者模式', function() {
+    $native = mockNative();
+    $dispatcher = new EventDispatcher($native);
+    
+    $subscriber = new class {
+        public $events = [];
+        
+        public function onUserLogin($data) {
+            $this->events[] = ['login', $data];
+        }
+        
+        public function onUserLogout() {
+            $this->events[] = ['logout'];
+        }
+        
+        public function subscribe($events) {
+            $events->listen('user.login', [$this, 'onUserLogin']);
+            $events->listen('user.logout', [$this, 'onUserLogout']);
+        }
+    };
+    
+    $dispatcher->subscribe($subscriber);
+    
+    $dispatcher->dispatch('user.login', ['id' => 1]);
+    $dispatcher->dispatch('user.logout');
+    
+    expect($subscriber->events)->toBe([
+        ['login', ['id' => 1]],
+        ['logout']
+    ]);
+});
+
+// 辅助函数：创建模拟 Native 实例
+function mockNative() {
+    return new class {
+        protected $listeners = [];
+        
+        public function on($event, $callback) {
+            $this->listeners[$event][] = $callback;
+        }
+        
+        public function emit($event, $data = null) {
+            if (isset($this->listeners[$event])) {
+                foreach ($this->listeners[$event] as $callback) {
+                    $callback($data);
+                }
+            }
+        }
+    };
+}

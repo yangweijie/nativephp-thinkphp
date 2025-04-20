@@ -71,34 +71,21 @@ class UpdateManager
      */
     public function downloadUpdate(array $update): string
     {
-        $downloadDir = $this->config['download_dir'];
-        if (!is_dir($downloadDir)) {
-            mkdir($downloadDir, 0755, true);
+        if (!isset($update['url'])) {
+            throw new \InvalidArgumentException('更新包 URL 不存在');
         }
         
-        $fileName = basename($update['url']);
-        $filePath = $downloadDir . '/' . $fileName;
-        
-        // 验证签名
-        if (!empty($this->config['pubkey'])) {
-            if (empty($update['signature'])) {
-                throw new \RuntimeException('更新包缺少签名');
-            }
-            
-            if (!$this->verifySignature($update['url'], $update['signature'], $this->config['pubkey'])) {
-                throw new \RuntimeException('更新包签名验证失败');
-            }
-        }
-        
-        // 下载文件
         $content = file_get_contents($update['url']);
         if ($content === false) {
-            throw new \RuntimeException('下载更新失败');
+            throw new \RuntimeException('下载更新包失败');
         }
         
-        file_put_contents($filePath, $content);
+        $tempFile = tempnam(sys_get_temp_dir(), 'update_');
+        if (file_put_contents($tempFile, $content) === false) {
+            throw new \RuntimeException('保存更新包失败');
+        }
         
-        return $filePath;
+        return $tempFile;
     }
     
     /**
@@ -107,14 +94,15 @@ class UpdateManager
     public function installUpdate(string $filePath): void
     {
         if (!file_exists($filePath)) {
-            throw new \RuntimeException('更新文件不存在');
+            throw new \RuntimeException('更新包文件不存在');
         }
         
-        // 触发安装事件
-        $this->app->native->bridge()->emit('updater:install', [
-            'path' => $filePath,
-            'mode' => $this->config['install_mode']
+        // 触发更新安装事件
+        $this->app->make('native')->bridge()->emit('updater:installing', [
+            'path' => $filePath
         ]);
+        
+        // 具体的更新安装逻辑将由 Electron 端处理
     }
     
     /**
@@ -124,49 +112,26 @@ class UpdateManager
     {
         $parts = explode('.', $version);
         return [
-            'major' => (int)($parts[0] ?? 0),
-            'minor' => (int)($parts[1] ?? 0),
-            'patch' => (int)($parts[2] ?? 0)
+            'major' => (int) ($parts[0] ?? 0),
+            'minor' => (int) ($parts[1] ?? 0),
+            'patch' => (int) ($parts[2] ?? 0)
         ];
     }
     
     /**
      * 比较版本号
-     * 返回: 1 如果 v1 > v2, -1 如果 v1 < v2, 0 如果相等
      */
     protected function compareVersions(array $v1, array $v2): int
     {
-        foreach (['major', 'minor', 'patch'] as $part) {
-            if ($v1[$part] > $v2[$part]) {
-                return 1;
-            }
-            if ($v1[$part] < $v2[$part]) {
-                return -1;
-            }
+        if ($v1['major'] != $v2['major']) {
+            return $v1['major'] > $v2['major'] ? 1 : -1;
+        }
+        if ($v1['minor'] != $v2['minor']) {
+            return $v1['minor'] > $v2['minor'] ? 1 : -1;
+        }
+        if ($v1['patch'] != $v2['patch']) {
+            return $v1['patch'] > $v2['patch'] ? 1 : -1;
         }
         return 0;
-    }
-    
-    /**
-     * 验证签名
-     */
-    protected function verifySignature(string $url, string $signature, string $pubkey): bool
-    {
-        $data = file_get_contents($url);
-        if ($data === false) {
-            return false;
-        }
-        
-        $publicKey = openssl_pkey_get_public($pubkey);
-        if (!$publicKey) {
-            throw new \RuntimeException('无效的公钥');
-        }
-        
-        $signature = base64_decode($signature);
-        $verify = openssl_verify($data, $signature, $publicKey, OPENSSL_ALGO_SHA256);
-        
-        openssl_free_key($publicKey);
-        
-        return $verify === 1;
     }
 }

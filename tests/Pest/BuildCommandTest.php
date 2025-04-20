@@ -437,6 +437,85 @@ test('更新器可以验证签名', function () {
     @unlink($packagePath);
 });
 
+test('构建命令可以处理编译选项', function() {
+    $app = mockApp();
+    $command = new BuildCommand();
+    $command->setApp($app);
+    
+    $input = mockInput([
+        'platform' => 'windows',
+        '--debug' => true,
+        '--arch' => 'x64'
+    ]);
+    
+    $output = mockOutput();
+    
+    $mockProcess = mock(Process::class)->expect(
+        run: fn() => null,
+        isSuccessful: fn() => true,
+        setEnv: function($env) {
+            expect($env['RUSTFLAGS'])->toBe('-C target-feature=+crt-static');
+            return $this;
+        }
+    );
+    
+    allow(Process::class)->toBeConstructed()->andReturn($mockProcess);
+    
+    $result = $command->execute($input, $output);
+    expect($result)->toBe(0);
+});
+
+test('构建命令可以处理环境变量', function() {
+    $app = mockApp();
+    $command = new BuildCommand();
+    $command->setApp($app);
+    
+    $input = mockInput([
+        'platform' => 'macos',
+        '--target' => 'production'
+    ]);
+    
+    $output = mockOutput();
+    
+    $mockProcess = mock(Process::class)->expect(
+        run: fn() => null,
+        isSuccessful: fn() => true,
+        setEnv: function($env) {
+            expect($env)->toHaveKey('MACOSX_DEPLOYMENT_TARGET');
+            expect($env)->toHaveKey('CARGO_BUILD_TARGET');
+            return $this;
+        }
+    );
+    
+    allow(Process::class)->toBeConstructed()->andReturn($mockProcess);
+    
+    $result = $command->execute($input, $output);
+    expect($result)->toBe(0);
+});
+
+test('构建命令可以处理错误输出', function() {
+    $app = mockApp();
+    $command = new BuildCommand();
+    $command->setApp($app);
+    
+    $input = mockInput([
+        'platform' => 'linux'
+    ]);
+    
+    $output = mockOutput();
+    
+    $mockProcess = mock(Process::class)->expect(
+        run: fn() => null,
+        isSuccessful: fn() => false,
+        getErrorOutput: fn() => '构建失败: 缺少依赖项'
+    );
+    
+    allow(Process::class)->toBeConstructed()->andReturn($mockProcess);
+    
+    $result = $command->execute($input, $output);
+    expect($result)->toBe(1);
+});
+
 /**
  * 模拟 App 实例
  */

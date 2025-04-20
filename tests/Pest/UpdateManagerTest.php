@@ -208,6 +208,82 @@ test('更新管理器可以处理安装更新', function() {
     unlink($tempFile);
 });
 
+test('更新管理器可以检测版本冲突', function() {
+    $app = getMockApp();
+    $manager = new UpdateManager($app);
+    
+    // 测试不兼容的版本
+    expect($manager->isCompatible('2.0.0', '^1.0.0'))->toBeFalse();
+    expect($manager->isCompatible('1.0.0', '^2.0.0'))->toBeFalse();
+    
+    // 测试兼容的版本
+    expect($manager->isCompatible('1.1.0', '^1.0.0'))->toBeTrue();
+    expect($manager->isCompatible('1.0.1', '^1.0.0'))->toBeTrue();
+});
+
+test('更新管理器可以处理预发布版本', function() {
+    $app = getMockApp();
+    $manager = new UpdateManager($app);
+    
+    // 测试预发布版本解析
+    expect($manager->parseVersion('1.0.0-beta.1'))->toBe([
+        'major' => 1,
+        'minor' => 0,
+        'patch' => 0,
+        'prerelease' => 'beta.1'
+    ]);
+    
+    // 测试预发布版本比较
+    expect($manager->isNewer('1.0.0', '1.0.0-beta.1'))->toBeTrue();
+    expect($manager->isNewer('1.0.0-beta.2', '1.0.0-beta.1'))->toBeTrue();
+});
+
+test('更新管理器可以处理更新通道', function() {
+    $app = getMockApp();
+    $manager = new UpdateManager($app);
+    
+    // 设置测试配置
+    Config::set([
+        'native.updater.channel' => 'beta'
+    ]);
+    
+    // 模拟更新检查
+    $updates = [
+        [
+            'version' => '1.1.0',
+            'channel' => 'stable'
+        ],
+        [
+            'version' => '1.2.0-beta.1',
+            'channel' => 'beta'
+        ]
+    ];
+    
+    expect($manager->filterUpdatesByChannel($updates))->toHaveCount(1)
+        ->and($manager->filterUpdatesByChannel($updates)[0]['version'])->toBe('1.2.0-beta.1');
+});
+
+test('更新管理器可以处理增量更新', function() {
+    $app = getMockApp();
+    $manager = new UpdateManager($app);
+    
+    // 模拟当前版本
+    allow($app->config)->toReceive('get')->with('app.version')->andReturn('1.0.0');
+    
+    // 模拟可用更新
+    $updates = [
+        ['version' => '1.0.1', 'type' => 'patch'],
+        ['version' => '1.1.0', 'type' => 'minor'],
+        ['version' => '2.0.0', 'type' => 'major']
+    ];
+    
+    // 测试版本筛选
+    $filtered = $manager->filterCompatibleUpdates($updates);
+    expect($filtered)->toHaveCount(2)
+        ->and($filtered[0]['version'])->toBe('1.0.1')
+        ->and($filtered[1]['version'])->toBe('1.1.0');
+});
+
 /**
  * 获取模拟的 App 实例
  */

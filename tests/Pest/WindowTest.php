@@ -331,3 +331,84 @@ test('Window 可以通过数组配置', function () {
 
     expect($window)->toBeInstanceOf(MockWindow::class);
 });
+
+// 测试窗口切换全屏状态
+test('窗口可以切换全屏状态', function() {
+    $window = createMockWindow();
+    $state = $window->toggleFullscreen();
+    
+    expect($state->isFullscreen())->toBeTrue();
+    expect($state->isMaximized())->toBeFalse();
+});
+
+// 测试窗口切换最大化状态
+test('窗口可以切换最大化状态', function() {
+    $window = createMockWindow();
+    $state = $window->toggleMaximize();
+    
+    expect($state->isMaximized())->toBeTrue();
+    expect($state->isFullscreen())->toBeFalse();
+});
+
+// 测试窗口应用预设布局
+test('窗口可以应用预设布局', function() {
+    $window = createMockWindow();
+    
+    $window->applyPreset('topLeft');
+    expect($window->getState()->getPosition())->toBe(['x' => 0, 'y' => 0]);
+    
+    $window->applyPreset('bottomRight');
+    $display = $window->getDisplay();
+    expect($window->getState()->getPosition())->toBe([
+        'x' => $display['width'] - $window->getState()->getSize()['width'],
+        'y' => $display['height'] - $window->getState()->getSize()['height']
+    ]);
+});
+
+// 测试窗口执行过渡动画
+test('窗口可以执行过渡动画', function() {
+    $window = createMockWindow();
+    
+    $transition = $window->transition()
+        ->duration(300)
+        ->easing('easeInOut')
+        ->position(100, 200)
+        ->size(800, 600)
+        ->opacity(0.8);
+        
+    expect($transition->getDuration())->toBe(300);
+    expect($transition->getEasing())->toBe('easeInOut');
+    expect($transition->getTarget())->toMatchArray([
+        'x' => 100,
+        'y' => 200,
+        'width' => 800,
+        'height' => 600,
+        'opacity' => 0.8
+    ]);
+});
+
+// 测试窗口保存和恢复状态
+test('窗口可以保存和恢复状态', function() {
+    $window = createMockWindow();
+    
+    // 保存初始状态
+    $initialState = $window->saveState();
+    
+    // 修改窗口状态
+    $window->setPosition(200, 300)
+        ->setSize(1024, 768)
+        ->setOpacity(0.9);
+        
+    // 验证状态已改变
+    $currentState = $window->getState();
+    expect($currentState->getPosition())->toBe(['x' => 200, 'y' => 300]);
+    expect($currentState->getSize())->toBe(['width' => 1024, 'height' => 768]);
+    expect($currentState->getOpacity())->toBe(0.9);
+    
+    // 恢复初始状态
+    $window->restoreState($initialState);
+    
+    // 验证状态已恢复
+    $restoredState = $window->getState();
+    expect($restoredState)->toEqual($initialState);
+});

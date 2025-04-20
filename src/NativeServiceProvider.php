@@ -5,6 +5,7 @@ namespace NativePHP\Think;
 use think\Service;
 use NativePHP\Think\Commands\InstallCommand;
 use NativePHP\Think\Commands\ServeCommand;
+use NativePHP\Think\Commands\UpdaterCommand;
 
 class NativeServiceProvider extends Service
 {
@@ -14,6 +15,11 @@ class NativeServiceProvider extends Service
         $this->app->bind('native', function () {
             return new Native($this->app);
         });
+
+        // 注册更新管理器
+        $this->app->bind('native.updater', function () {
+            return new UpdateManager($this->app);
+        });
     }
 
     public function boot()
@@ -22,6 +28,15 @@ class NativeServiceProvider extends Service
         $this->commands([
             InstallCommand::class,
             ServeCommand::class,
+            UpdaterCommand::class,
         ]);
+
+        // 注册更新检查中间件
+        $this->registerMiddleware();
+    }
+
+    protected function registerMiddleware()
+    {
+        $this->app->middleware->add(Middleware\CheckForUpdates::class);
     }
 }
