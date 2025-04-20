@@ -15,6 +15,9 @@ use think\Facade;
  * @method static \NativePHP\Think\WindowPresets windowPresets()
  * @method static \NativePHP\Think\WindowLayoutPresets windowLayoutPresets()
  * @method static \NativePHP\Think\EventDispatcher events()
+ * @method static \NativePHP\Think\Bridge bridge()
+ * @method static mixed getConfig(string $key = null, mixed $default = null)
+ * @method static void exit(int $code = 0)
  */
 class Native extends Facade
 {

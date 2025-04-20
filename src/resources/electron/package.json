@@ -1,0 +1,11 @@
+{
+  "name": "nativephp-thinkphp",
+  "version": "1.0.0",
+  "description": "NativePHP for ThinkPHP",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "NativePHP",
+  "license": "MIT"
+}

@@ -9,6 +9,7 @@ return [
     'app' => [
         'name' => env('APP_NAME', 'ThinkPHP App'),
         'version' => env('APP_VERSION', '1.0.0'),
+        'icon' => public_path('favicon.ico'),
     ],
 
     /*
@@ -23,7 +24,7 @@ return [
             'center' => true,
             'title' => env('APP_NAME', 'ThinkPHP App'),
         ],
-        
+
         // 预设窗口配置
         'presets' => [
             'dialog' => [
@@ -72,12 +73,56 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | 窗口分组设置
+    |--------------------------------------------------------------------------
+    */
+    'window_groups' => [
+        'default' => [
+            'state_file' => runtime_path('window_states.json'),
+            'auto_restore' => true,
+        ],
+        
+        // 预设分组配置
+        'editor' => [
+            'windows' => [
+                'main' => [
+                    'width' => 1200,
+                    'height' => 800,
+                ],
+                'preview' => [
+                    'width' => 600,
+                    'height' => 800,
+                ],
+            ],
+            'layout' => 'horizontal',
+        ],
+        'dashboard' => [
+            'windows' => [
+                'main' => [
+                    'width' => 1000,
+                    'height' => 600,
+                ],
+                'sidebar' => [
+                    'width' => 300,
+                    'height' => 600,
+                ],
+                'footer' => [
+                    'width' => 1300,
+                    'height' => 200,
+                ],
+            ],
+            'layout' => 'custom',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | 系统托盘设置
     |--------------------------------------------------------------------------
     */
     'tray' => [
-        'icon' => null,
-        'icon_path' => null,
+        'icon' => public_path('favicon.ico'),
+        'tooltip' => env('APP_NAME', 'ThinkPHP App'),
         'menu_items' => [],
     ],
 
@@ -115,5 +160,16 @@ return [
             'style-src' => ["'self'"],
             'img-src' => ["'self'", 'data:'],
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 更新器设置
+    |--------------------------------------------------------------------------
+    */
+    'updater' => [
+        'enabled' => false,
+        'url' => null,
+        'interval' => 60 * 60 * 1000, // 1小时
     ],
 ];

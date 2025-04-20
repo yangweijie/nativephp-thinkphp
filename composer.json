@@ -1,5 +1,5 @@
 {
-    "name": "james.xue/nativephp-thinkphp",
+    "name": "nativephp/thinkphp",
     "description": "ThinkPHP的NativePHP扩展包",
     "type": "library",
     "license": "MIT",
@@ -34,7 +34,7 @@
     "extra": {
         "think": {
             "services": [
-                "NativePHP\\Think\\NativeAppServiceProvider"
+                "NativePHP\\Think\\NativeServiceProvider"
             ],
             "config": {
                 "native": "src/config/native.php"

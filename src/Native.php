@@ -117,4 +117,12 @@ class Native
         }
         return $this->bridge;
     }
+
+    /**
+     * 退出应用
+     */
+    public function exit(int $code = 0): void
+    {
+        $this->bridge()->emit('app:exit', ['code' => $code]);
+    }
 }

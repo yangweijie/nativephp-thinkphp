@@ -46,8 +46,10 @@ class Ipc implements IpcContract
             'args' => $args
         ]);
 
-        // TODO: 实际的前端方法调用实现
-        // 这里需要与 Tauri 的 IPC 机制集成
+        // 使用 send 方法发送调用请求
+        $this->send('invoke:' . $method, $args);
+
+        // 注意：这是异步调用，不会等待结果
         return null;
     }
 
@@ -78,10 +80,16 @@ class Ipc implements IpcContract
     }
 
     /**
-     * 处理来自前端的消息
+     * 处理来自 Electron 的消息
      */
     public function handleMessage(string $channel, array $payload = []): void
     {
+        // 触发事件
+        $this->native->events()->dispatch('ipc.message', [
+            'channel' => $channel,
+            'payload' => $payload
+        ]);
+
         // 调用通道对应的所有处理器
         foreach ($this->getHandlers($channel) as $handler) {
             call_user_func($handler, $payload);
