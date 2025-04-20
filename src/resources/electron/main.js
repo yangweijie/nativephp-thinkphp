@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, Tray, globalShortcut, shell, nativeTh
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
+const performanceMonitor = require('./performance');
 
 // 环境变量
 const host = process.env.NATIVEPHP_SERVE_HOST || '127.0.0.1';
@@ -82,6 +83,9 @@ function updateAppConfig() {
 
 // 创建主窗口
 function createMainWindow() {
+    // 开始性能监控
+    performanceMonitor.start('window-creation');
+    
     mainWindow = new BrowserWindow({
         width: appConfig.window.width,
         height: appConfig.window.height,
@@ -124,6 +128,18 @@ function createMainWindow() {
     // 窗口关闭后事件
     mainWindow.on('closed', () => {
         mainWindow = null;
+    });
+
+    mainWindow.webContents.on('did-finish-load', () => {
+        performanceMonitor.end('window-creation');
+        
+        // 开始资源监控
+        performanceMonitor.measureResourceTiming();
+        performanceMonitor.measureMemory();
+        performanceMonitor.startCPUMonitoring();
+        
+        // 发送性能指标到渲染进程
+        mainWindow.webContents.send('performance-metrics', performanceMonitor.getAllMetrics());
     });
 
     // 加载配置
@@ -486,6 +502,30 @@ function registerIpcHandlers() {
     });
 }
 
+// 注册性能监控相关的 IPC 处理器
+function registerPerformanceHandlers() {
+    ipcMain.handle('get-performance-metrics', () => {
+        return performanceMonitor.getAllMetrics();
+    });
+    
+    ipcMain.on('clear-performance-metrics', () => {
+        performanceMonitor.clearMetrics();
+    });
+    
+    // 监听性能事件
+    performanceMonitor.on('metric', (metric) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('performance-metric', metric);
+        }
+    });
+    
+    performanceMonitor.on('cpu', (cpu) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('cpu-usage', cpu);
+        }
+    });
+}
+
 // 发送数据到服务器
 function sendToServer(endpoint, data) {
     try {
@@ -521,11 +561,64 @@ function registerGlobalShortcuts() {
     });
 }
 
+// 错误处理
+app.on('native:error', (error) => {
+    // 创建错误窗口
+    const errorWindow = new BrowserWindow({
+        width: 1000,
+        height: 800,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        }
+    });
+
+    // 格式化错误信息
+    const errorHtml = `
+        <style>
+            body { font-family: system-ui; padding: 20px; }
+            pre { background: #f5f5f5; padding: 10px; border-radius: 4px; }
+        </style>
+        <h2>应用程序错误</h2>
+        <h3>${error.type}</h3>
+        <p>${error.message}</p>
+        ${error.file ? `<p>位置: ${error.file}:${error.line}</p>` : ''}
+        ${error.stack ? `<pre>${error.stack}</pre>` : ''}
+    `;
+
+    // 加载错误内容
+    errorWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(errorHtml));
+
+    // 记录错误日志
+    log.error('应用程序错误:', error);
+});
+
+// 全局未捕获异常处理
+process.on('uncaughtException', (error) => {
+    log.error('未捕获的异常:', error);
+
+    dialog.showErrorBox(
+        '应用程序错误',
+        `发生了一个未预期的错误:\n${error.message}\n\n${error.stack}`
+    );
+});
+
+// Promise 异常处理
+process.on('unhandledRejection', (reason) => {
+    log.error('未处理的 Promise 拒绝:', reason);
+
+    dialog.showErrorBox(
+        'Promise 错误',
+        `未处理的 Promise 拒绝:\n${reason}`
+    );
+});
+
 // 应用就绪事件
 app.whenReady().then(() => {
     createMainWindow();
     registerIpcHandlers();
     registerGlobalShortcuts();
+    registerPerformanceHandlers(); // 注册性能监控处理器
 
     // macOS 应用激活事件
     app.on('activate', () => {
@@ -547,6 +640,7 @@ app.on('window-all-closed', () => {
 // 应用退出前事件
 app.on('before-quit', () => {
     isQuitting = true;
+    performanceMonitor.stopCPUMonitoring();
 });
 
 // 注销全局快捷键

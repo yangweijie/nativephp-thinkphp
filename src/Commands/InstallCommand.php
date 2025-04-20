@@ -22,6 +22,14 @@ class InstallCommand extends Command
     {
         $output->writeln('<info>开始安装 NativePHP...</info>');
 
+        // 检查依赖
+        if (!$this->checkDependencies($output)) {
+            return 1;
+        }
+
+        // 安装 Node.js 依赖
+        $this->installNodeDependencies($output);
+
         // 发布配置
         $this->publishConfig($output);
 
@@ -35,6 +43,79 @@ class InstallCommand extends Command
 
         $output->writeln('<info>NativePHP 安装完成！</info>');
         return 0;
+    }
+
+    protected function checkDependencies(Output $output): bool
+    {
+        $dependencies = [
+            'php' => '>=7.2.5',
+            'node' => '>=14.0.0',
+            'npm' => '>=6.0.0',
+            'electron' => '>=22.0.0'
+        ];
+
+        foreach ($dependencies as $dep => $version) {
+            $process = new Process([$dep, '--version']);
+            $process->run();
+
+            if (!$process->isSuccessful()) {
+                $output->writeln("<error>{$dep} 未安装</error>");
+                return false;
+            }
+
+            $installedVersion = trim($process->getOutput());
+            if (!$this->checkVersion($installedVersion, $version)) {
+                $output->writeln("<error>{$dep} 版本需要 {$version}，当前版本 {$installedVersion}</error>");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected function checkVersion(string $installed, string $required): bool
+    {
+        $installed = preg_replace('/[^0-9.]/', '', $installed);
+        $required = str_replace('>=', '', $required);
+
+        return version_compare($installed, $required, '>=');
+    }
+
+    protected function installNodeDependencies(Output $output): void
+    {
+        $output->writeln('安装 Node.js 依赖...');
+
+        $dependencies = [
+            'electron' => '^22.0.0',
+            'electron-builder' => '^24.0.0',
+            'electron-updater' => '^6.0.0',
+            'electron-log' => '^5.0.0',
+            'terser' => '^5.0.0',
+            'clean-css-cli' => '^5.0.0'
+        ];
+
+        // 更新 package.json
+        $packagePath = $this->app->getRootPath() . 'package.json';
+        $package = file_exists($packagePath) ? json_decode(file_get_contents($packagePath), true) : [];
+
+        $package['devDependencies'] = array_merge(
+            $package['devDependencies'] ?? [],
+            $dependencies
+        );
+
+        file_put_contents(
+            $packagePath,
+            json_encode($package, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        );
+
+        // 安装依赖
+        $process = new Process(['npm', 'install']);
+        $process->setWorkingDirectory($this->app->getRootPath());
+        $process->setTimeout(null);
+
+        $process->run(function ($type, $buffer) use ($output) {
+            $output->write($buffer);
+        });
     }
 
     protected function publishConfig(Output $output)

@@ -26,7 +26,10 @@ class BuildCommand extends Command
             ->addOption('universal', 'u', Option::VALUE_NONE, 'macOS: 构建通用二进制文件')
             ->addOption('updater', null, Option::VALUE_NONE, '启用自动更新')
             ->addOption('icon', null, Option::VALUE_OPTIONAL, '自定义应用图标路径')
-            ->addOption('resources', null, Option::VALUE_OPTIONAL, '额外资源目录路径');
+            ->addOption('resources', null, Option::VALUE_OPTIONAL, '额外资源目录路径')
+            ->addOption('compress', 'c', Option::VALUE_NONE, '启用资源压缩')
+            ->addOption('minify', 'm', Option::VALUE_NONE, '压缩 JS/CSS 文件')
+            ->addOption('static-dir', null, Option::VALUE_OPTIONAL, '静态资源目录', 'public');
     }
 
     protected function execute(Input $input, Output $output)
@@ -48,6 +51,9 @@ class BuildCommand extends Command
         // 复制资源
         $this->copyApplicationResources($input, $output, $buildDir);
         
+        // 处理静态资源
+        $this->processStaticAssets($buildDir, $input, $output);
+
         // 生成构建配置
         $this->generateBuildConfig($input, $output, $buildDir);
         
@@ -131,6 +137,85 @@ class BuildCommand extends Command
                 $output->writeln('<info>已复制额外资源</info>');
             }
         }
+    }
+
+    protected function processStaticAssets(string $buildDir, Input $input, Output $output): void 
+    {
+        $staticDir = $input->getOption('static-dir');
+        $shouldCompress = $input->getOption('compress');
+        $shouldMinify = $input->getOption('minify');
+
+        if (!is_dir($staticDir)) {
+            return;
+        }
+
+        $output->writeln('<info>处理静态资源...</info>');
+
+        // 复制静态资源
+        $this->copyDirectory($staticDir, $buildDir . '/resources/static');
+
+        if ($shouldMinify) {
+            $this->minifyAssets($buildDir . '/resources/static', $output);
+        }
+
+        if ($shouldCompress) {
+            $this->compressAssets($buildDir . '/resources/static', $output);
+        }
+    }
+
+    protected function minifyAssets(string $dir, Output $output): void
+    {
+        $process = new Process(['npm', 'install', 'terser', 'clean-css-cli', '--save-dev']);
+        $process->run();
+
+        // 压缩 JS 文件
+        $jsFiles = glob($dir . '/**/*.js');
+        foreach ($jsFiles as $file) {
+            $process = new Process([
+                'npx',
+                'terser',
+                $file,
+                '--compress',
+                '--mangle',
+                '--output',
+                $file
+            ]);
+            $process->run();
+        }
+
+        // 压缩 CSS 文件
+        $cssFiles = glob($dir . '/**/*.css');
+        foreach ($cssFiles as $file) {
+            $process = new Process([
+                'npx',
+                'cleancss',
+                '-o',
+                $file,
+                $file
+            ]);
+            $process->run();
+        }
+
+        $output->writeln('<info>资源压缩完成</info>');
+    }
+
+    protected function compressAssets(string $dir, Output $output): void
+    {
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir)
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $path = $file->getRealPath();
+                if (pathinfo($path, PATHINFO_EXTENSION) !== 'gz') {
+                    $compressed = gzencode(file_get_contents($path), 9);
+                    file_put_contents($path . '.gz', $compressed);
+                }
+            }
+        }
+
+        $output->writeln('<info>资源压缩打包完成</info>');
     }
 
     protected function runBuild(Input $input, Output $output, string $buildDir): int

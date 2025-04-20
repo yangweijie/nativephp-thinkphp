@@ -6,132 +6,212 @@ use think\App;
 
 class UpdateManager
 {
-    protected array $config;
-    protected array $currentVersion;
-    
-    public function __construct(protected App $app)
+    protected $app;
+    protected $backupPath;
+    protected $downloadPath;
+    protected $currentVersion;
+    protected $rollbackVersions = [];
+
+    public function __construct(App $app)
     {
-        $this->config = $this->app->config->get('native.updater', []);
-        $this->currentVersion = $this->parseVersion($this->app->config->get('native.app.version', '1.0.0'));
+        $this->app = $app;
+        $this->backupPath = runtime_path('backups');
+        $this->downloadPath = runtime_path('updates');
+        $this->currentVersion = config('native.app.version');
+        $this->initDirectories();
     }
-    
-    /**
-     * 检查更新
-     */
+
+    protected function initDirectories(): void
+    {
+        if (!is_dir($this->backupPath)) {
+            mkdir($this->backupPath, 0755, true);
+        }
+        if (!is_dir($this->downloadPath)) {
+            mkdir($this->downloadPath, 0755, true);
+        }
+    }
+
     public function checkForUpdates(): ?array
     {
-        if (!$this->config['enabled']) {
+        $server = config('native.updater.server');
+        $channel = config('native.updater.channel');
+        
+        if (!$server) {
             return null;
         }
-        
-        if (!$this->config['server']) {
-            throw new \RuntimeException('未配置更新服务器地址');
+
+        $response = file_get_contents(sprintf(
+            '%s/updates.json?version=%s&channel=%s',
+            rtrim($server, '/'),
+            urlencode($this->currentVersion),
+            urlencode($channel)
+        ));
+
+        if (!$response) {
+            return null;
         }
-        
-        try {
-            $response = file_get_contents($this->config['server'] . '/updates.json');
-            $updates = json_decode($response, true);
-            
-            if (!$updates) {
-                return null;
-            }
-            
-            // 过滤当前通道的更新
-            $updates = array_filter($updates['versions'] ?? [], function($update) {
-                return $update['channel'] === $this->config['channel'];
-            });
-            
-            if (empty($updates)) {
-                return null;
-            }
-            
-            // 获取最新版本
-            $latestUpdate = array_reduce($updates, function($latest, $update) {
-                $version = $this->parseVersion($update['version']);
-                if (!$latest || $this->compareVersions($version, $this->parseVersion($latest['version'])) > 0) {
-                    return $update;
-                }
-                return $latest;
-            });
-            
-            // 检查是否需要更新
-            if ($this->compareVersions($this->currentVersion, $this->parseVersion($latestUpdate['version'])) >= 0) {
-                return null;
-            }
-            
-            return $latestUpdate;
-            
-        } catch (\Exception $e) {
-            throw new \RuntimeException('检查更新失败: ' . $e->getMessage());
-        }
+
+        return json_decode($response, true);
     }
-    
-    /**
-     * 下载更新
-     */
-    public function downloadUpdate(array $update): string
+
+    public function downloadUpdate(string $url, string $version): string
     {
-        if (!isset($update['url'])) {
-            throw new \InvalidArgumentException('更新包 URL 不存在');
-        }
-        
-        $content = file_get_contents($update['url']);
-        if ($content === false) {
+        $hash = md5($url);
+        $path = $this->downloadPath . '/' . $hash . '.zip';
+
+        if (!copy($url, $path)) {
             throw new \RuntimeException('下载更新包失败');
         }
-        
-        $tempFile = tempnam(sys_get_temp_dir(), 'update_');
-        if (file_put_contents($tempFile, $content) === false) {
-            throw new \RuntimeException('保存更新包失败');
+
+        // 验证签名
+        if (!$this->verifyUpdate($path)) {
+            unlink($path);
+            throw new \RuntimeException('更新包签名验证失败');
         }
-        
-        return $tempFile;
+
+        return $path;
     }
-    
-    /**
-     * 安装更新
-     */
-    public function installUpdate(string $filePath): void
+
+    protected function verifyUpdate(string $path): bool
     {
-        if (!file_exists($filePath)) {
-            throw new \RuntimeException('更新包文件不存在');
+        $pubkey = config('native.updater.pubkey');
+        if (!$pubkey) {
+            return true;
         }
-        
-        // 触发更新安装事件
-        $this->app->make('native')->bridge()->emit('updater:installing', [
-            'path' => $filePath
-        ]);
-        
-        // 具体的更新安装逻辑将由 Electron 端处理
+
+        // 获取签名文件
+        $signature = file_get_contents($path . '.sig');
+        if (!$signature) {
+            return false;
+        }
+
+        return verify_update_signature($path, $signature, $pubkey);
     }
-    
-    /**
-     * 解析版本号
-     */
-    protected function parseVersion(string $version): array
+
+    public function installUpdate(string $updatePath, string $version): bool
     {
-        $parts = explode('.', $version);
-        return [
-            'major' => (int) ($parts[0] ?? 0),
-            'minor' => (int) ($parts[1] ?? 0),
-            'patch' => (int) ($parts[2] ?? 0)
+        // 备份当前版本
+        $this->backupCurrentVersion();
+
+        try {
+            // 解压更新包
+            $zip = new \ZipArchive;
+            if ($zip->open($updatePath) !== true) {
+                throw new \RuntimeException('无法打开更新包');
+            }
+
+            $zip->extractTo($this->app->getRootPath());
+            $zip->close();
+
+            // 更新版本号
+            $this->updateVersion($version);
+
+            // 清理下载的更新包
+            unlink($updatePath);
+            if (file_exists($updatePath . '.sig')) {
+                unlink($updatePath . '.sig');
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            // 发生错误时回滚
+            $this->rollback();
+            throw $e;
+        }
+    }
+
+    protected function backupCurrentVersion(): void
+    {
+        $backupFile = $this->backupPath . '/' . $this->currentVersion . '_' . time() . '.zip';
+        
+        $zip = new \ZipArchive;
+        if ($zip->open($backupFile, \ZipArchive::CREATE) !== true) {
+            throw new \RuntimeException('无法创建备份文件');
+        }
+
+        $this->addToZip($zip, $this->app->getRootPath());
+        $zip->close();
+
+        // 保存到回滚版本列表
+        $this->rollbackVersions[] = [
+            'version' => $this->currentVersion,
+            'path' => $backupFile,
+            'time' => time()
         ];
+
+        // 只保留最近的3个版本
+        if (count($this->rollbackVersions) > 3) {
+            $old = array_shift($this->rollbackVersions);
+            if (file_exists($old['path'])) {
+                unlink($old['path']);
+            }
+        }
     }
-    
-    /**
-     * 比较版本号
-     */
-    protected function compareVersions(array $v1, array $v2): int
+
+    protected function addToZip(\ZipArchive $zip, string $path, string $relativePath = ''): void
     {
-        if ($v1['major'] != $v2['major']) {
-            return $v1['major'] > $v2['major'] ? 1 : -1;
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $zip->addFile(
+                    $file->getRealPath(),
+                    $relativePath . substr($file->getRealPath(), strlen($path))
+                );
+            }
         }
-        if ($v1['minor'] != $v2['minor']) {
-            return $v1['minor'] > $v2['minor'] ? 1 : -1;
+    }
+
+    public function rollback(): bool
+    {
+        if (empty($this->rollbackVersions)) {
+            return false;
         }
-        if ($v1['patch'] != $v2['patch']) {
-            return $v1['patch'] > $v2['patch'] ? 1 : -1;
+
+        $lastBackup = array_pop($this->rollbackVersions);
+        
+        // 解压备份
+        $zip = new \ZipArchive;
+        if ($zip->open($lastBackup['path']) !== true) {
+            return false;
         }
-        return 0;
+
+        $zip->extractTo($this->app->getRootPath());
+        $zip->close();
+
+        // 恢复版本号
+        $this->updateVersion($lastBackup['version']);
+
+        return true;
+    }
+
+    protected function updateVersion(string $version): void
+    {
+        $this->currentVersion = $version;
+        
+        // 更新环境文件中的版本号
+        $envFile = $this->app->getRootPath() . '.env';
+        if (file_exists($envFile)) {
+            $content = file_get_contents($envFile);
+            $content = preg_replace(
+                '/APP_VERSION=.*/',
+                'APP_VERSION=' . $version,
+                $content
+            );
+            file_put_contents($envFile, $content);
+        }
+    }
+
+    public function getRollbackVersions(): array
+    {
+        return $this->rollbackVersions;
+    }
+
+    public function getCurrentVersion(): string
+    {
+        return $this->currentVersion;
     }
 }

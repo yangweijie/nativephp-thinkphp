@@ -103,3 +103,39 @@ contextBridge.exposeInMainWorld('Native', {
         }
     }
 });
+
+// 暴露性能监控 API
+contextBridge.exposeInMainWorld('Performance', {
+    // 获取所有性能指标
+    getMetrics: () => ipcRenderer.invoke('get-performance-metrics'),
+    
+    // 清除性能指标
+    clearMetrics: () => ipcRenderer.send('clear-performance-metrics'),
+    
+    // 监听性能指标更新
+    onMetric: (callback) => {
+        const subscription = (event, metric) => callback(metric);
+        ipcRenderer.on('performance-metric', subscription);
+        return () => ipcRenderer.removeListener('performance-metric', subscription);
+    },
+    
+    // 监听 CPU 使用率
+    onCPUUsage: (callback) => {
+        const subscription = (event, cpu) => callback(cpu);
+        ipcRenderer.on('cpu-usage', subscription);
+        return () => ipcRenderer.removeListener('cpu-usage', subscription);
+    },
+    
+    // 创建性能标记
+    mark: (name) => performance.mark(name),
+    
+    // 测量性能
+    measure: (name, startMark, endMark) => performance.measure(name, startMark, endMark),
+    
+    // 获取所有性能条目
+    getEntries: () => performance.getEntries(),
+    
+    // 清除性能条目
+    clearMarks: () => performance.clearMarks(),
+    clearMeasures: () => performance.clearMeasures()
+});
