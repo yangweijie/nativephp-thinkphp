@@ -168,9 +168,26 @@ return [
     |--------------------------------------------------------------------------
     */
     'updater' => [
+        // 是否启用自动更新
         'enabled' => false,
-        'url' => null,
-        'interval' => 60 * 60 * 1000, // 1小时
+        
+        // 更新服务器地址
+        'server' => env('NATIVE_UPDATE_SERVER', ''),
+        
+        // 更新验证公钥
+        'pubkey' => env('NATIVE_UPDATE_PUBKEY', ''),
+        
+        // 更新通道
+        'channel' => env('NATIVE_UPDATE_CHANNEL', 'stable'),
+        
+        // 更新检查间隔（小时）
+        'interval' => env('NATIVE_UPDATE_INTERVAL', 24),
+        
+        // 更新下载目录
+        'download_dir' => runtime_path('updates'),
+        
+        // 更新安装模式：silent（静默）, prompt（提示）, manual（手动）
+        'install_mode' => env('NATIVE_UPDATE_INSTALL_MODE', 'prompt'),
     ],
 
     /*

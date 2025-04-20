@@ -33,6 +33,11 @@ class NativeAppServiceProvider extends Service
         $this->app->bind(Contract\HotkeyContract::class, Hotkey::class);
         $this->app->bind(Contract\IpcContract::class, Ipc::class);
         $this->app->bind(Contract\EventDispatcherContract::class, EventDispatcher::class);
+
+        // 注册更新管理器
+        $this->app->bind('native.updater', function () {
+            return new UpdateManager($this->app);
+        });
     }
 
     public function boot()
@@ -56,6 +61,19 @@ class NativeAppServiceProvider extends Service
                 $group->loadState();
             }
         });
+
+        // 注册命令
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Commands\BuildCommand::class,
+                Commands\ServeCommand::class,
+                Commands\InstallCommand::class,
+                Commands\UpdaterCommand::class, // 添加更新器命令
+                Commands\CreateWindowCommand::class,
+                Commands\CreateWindowGroupCommand::class,
+                Commands\RestoreWindowCommand::class,
+            ]);
+        }
     }
 
     /**
