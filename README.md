@@ -1,6 +1,6 @@
 # NativePHP ThinkPHP
 
-ThinkPHP的NativePHP扩展包。
+将 NativePHP 移植到 ThinkPHP 框架的包，让您可以使用 ThinkPHP 构建桌面应用程序。
 
 ## 安装
 
@@ -40,6 +40,27 @@ $window = Native::windowManager()->createFromPreset('dialog', 'my-dialog');
 // - dialog：对话框窗口
 // - settings：设置窗口
 // - small：小型窗口
+```
+
+#### 窗口分组
+
+```php
+// 创建窗口分组
+$group = Native::windowManager()
+    ->createGroup('editor-group')
+    ->add('editor')
+    ->add('preview')
+    ->arrangeHorizontal();
+
+// 应用不同的布局方式
+$group->arrangeVertical();  // 垂直排列
+$group->arrangeGrid(2);     // 2列网格布局
+
+// 保存分组状态
+Native::windowGroupStateManager()->autoSaveAll();
+
+// 恢复分组状态
+Native::windowGroupStateManager()->autoRestoreAll();
 ```
 
 #### 高级窗口管理
@@ -105,21 +126,6 @@ Native::ipc()->on('channel-name', function ($data) {
 });
 ```
 
-### 菜单
-
-```php
-Native::menu()
-    ->addSubmenu('文件', function ($menu) {
-        $menu->add('新建', ['cmd' => 'new'])
-            ->accelerator('CmdOrCtrl+N');
-        $menu->add('打开', ['cmd' => 'open'])
-            ->accelerator('CmdOrCtrl+O');
-        $menu->addSeparator();
-        $menu->add('保存', ['cmd' => 'save'])
-            ->accelerator('CmdOrCtrl+S');
-    });
-```
-
 ## 高级功能
 
 ### 窗口状态管理
@@ -145,6 +151,47 @@ Native::windowLayoutPresets()->apply('split-view', ['left', 'right']);
 Native::windowLayoutPresets()->define('my-layout', function ($manager, $windows) {
     // 自定义窗口排列逻辑
 });
+```
+
+### 窗口分组状态管理
+
+```php
+$manager = Native::windowGroupStateManager();
+
+// 设置缓存配置
+$manager->setCacheKey('my_window_groups')
+    ->setExpireTime(7 * 24 * 60 * 60); // 7天过期
+
+// 自动保存所有分组状态
+$manager->autoSaveAll();
+
+// 自动恢复所有分组状态
+$manager->autoRestoreAll();
+
+// 清除所有保存的状态
+$manager->clearAll();
+```
+
+## 配置说明
+
+### 窗口分组配置
+
+在 `config/native.php` 中配置：
+
+```php
+'window_groups' => [
+    'default' => [
+        'state_file' => runtime_path('window_states.json'),
+        'auto_restore' => true,
+    ],
+    'editor' => [
+        'windows' => [
+            'main' => ['width' => 1200, 'height' => 800],
+            'preview' => ['width' => 600, 'height' => 800],
+        ],
+        'layout' => 'horizontal',
+    ],
+],
 ```
 
 ## 许可证

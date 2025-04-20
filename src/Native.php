@@ -12,6 +12,7 @@ class Native
     protected ?WindowPresets $windowPresets = null;
     protected ?WindowLayoutPresets $windowLayoutPresets = null;
     protected ?WindowState $windowState = null;
+    protected ?WindowGroupStateManager $windowGroupStateManager = null;
     protected ?Menu $menu = null;
     protected ?Tray $tray = null;
     protected ?Hotkey $hotkey = null;
@@ -68,6 +69,17 @@ class Native
             $this->windowState = new WindowState($this->windowManager());
         }
         return $this->windowState;
+    }
+
+    /**
+     * 获取窗口组状态管理器
+     */
+    public function windowGroupStateManager(): WindowGroupStateManager
+    {
+        if (!$this->windowGroupStateManager) {
+            $this->windowGroupStateManager = new WindowGroupStateManager($this->windowManager());
+        }
+        return $this->windowGroupStateManager;
     }
 
     public function menu(): Menu

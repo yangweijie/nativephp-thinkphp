@@ -13,10 +13,24 @@ class NativeController
      */
     public function initialize()
     {
+        // 创建主窗口分组
+        Native::windowManager()->createGroup('main-group')
+            ->add('main')
+            ->add('editor')
+            ->arrangeHorizontal();
+        
         // 创建主窗口
-        Native::window()
+        Native::window('main')
             ->title('NativePHP-ThinkPHP 示例应用')
             ->width(800)
+            ->height(600)
+            ->center()
+            ->show();
+        
+        // 创建编辑器窗口
+        Native::window('editor')
+            ->title('编辑器')
+            ->width(600)
             ->height(600)
             ->center()
             ->show();
@@ -25,8 +39,18 @@ class NativeController
         Native::tray()
             ->icon(public_path('icon.png'))
             ->tooltip('NativePHP-ThinkPHP 示例应用')
-            ->addItem('显示应用', function () {
-                Native::window()->show();
+            ->addItem('显示主窗口', function () {
+                Native::window('main')->show();
+            })
+            ->addItem('显示编辑器', function () {
+                Native::window('editor')->show();
+            })
+            ->addSeparator()
+            ->addItem('水平排列', function () {
+                Native::windowManager()->getGroup('main-group')->arrangeHorizontal();
+            })
+            ->addItem('垂直排列', function () {
+                Native::windowManager()->getGroup('main-group')->arrangeVertical();
             })
             ->addSeparator()
             ->addItem('退出', function () {
@@ -51,13 +75,24 @@ class NativeController
                     Native::exit();
                 })->accelerator('CmdOrCtrl+Q');
             })
-            ->addSubmenu('编辑', function ($menu) {
-                $menu->add('撤销')->accelerator('CmdOrCtrl+Z');
-                $menu->add('重做')->accelerator('Shift+CmdOrCtrl+Z');
+            ->addSubmenu('窗口', function ($menu) {
+                $menu->add('显示全部', function () {
+                    Native::windowManager()->getGroup('main-group')->showAll();
+                });
+                
+                $menu->add('隐藏全部', function () {
+                    Native::windowManager()->getGroup('main-group')->hideAll();
+                });
+                
                 $menu->addSeparator();
-                $menu->add('剪切')->accelerator('CmdOrCtrl+X');
-                $menu->add('复制')->accelerator('CmdOrCtrl+C');
-                $menu->add('粘贴')->accelerator('CmdOrCtrl+V');
+                
+                $menu->add('水平排列', function () {
+                    Native::windowManager()->getGroup('main-group')->arrangeHorizontal();
+                });
+                
+                $menu->add('垂直排列', function () {
+                    Native::windowManager()->getGroup('main-group')->arrangeVertical();
+                });
             })
             ->addSubmenu('帮助', function ($menu) {
                 $menu->add('关于', function () {

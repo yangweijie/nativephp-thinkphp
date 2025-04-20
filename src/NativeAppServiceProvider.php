@@ -18,6 +18,7 @@ class NativeAppServiceProvider extends Service
         $this->commands([
             Commands\BuildCommand::class,
             Commands\CreateWindowCommand::class,
+            Commands\CreateWindowGroupCommand::class,
             Commands\InstallCommand::class,
             Commands\RestoreWindowCommand::class,
             Commands\ServeCommand::class,
@@ -38,6 +39,23 @@ class NativeAppServiceProvider extends Service
     {
         // 初始化 Bridge
         $this->app->make('native')->bridge()->register();
+
+        // 注册窗口分组相关事件监听
+        $this->app->event->listen('window.group.created', function($data) {
+            // 保存分组状态
+            $group = $this->app->make('native')->windowManager()->getGroup($data['name']);
+            if ($group) {
+                $group->saveState();
+            }
+        });
+
+        $this->app->event->listen('window.group.restored', function($data) {
+            // 加载分组状态
+            $group = $this->app->make('native')->windowManager()->getGroup($data['name']);
+            if ($group) {
+                $group->loadState();
+            }
+        });
     }
 
     /**

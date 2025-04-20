@@ -285,19 +285,29 @@ class WindowManager
             throw new InvalidArgumentException("Window group '{$name}' already exists.");
         }
 
-        $group = new WindowGroup($this, $name);
-        $this->groups[$name] = $group;
+        $configPath = $this->native->getConfig('window_groups.' . $name . '.state_file');
+        $group = new WindowGroup($this, $name, $configPath);
 
         foreach ($windows as $label => $options) {
-            $window = $this->create($label, $options);
-            $group->add($window);
+            if (!isset($this->windows[$label])) {
+                $this->create($label, $options);
+            }
+            $group->add($label);
         }
+
+        $this->groups[$name] = $group;
+
+        // 触发分组创建事件
+        $this->native->events()->dispatch('window.group.created', [
+            'name' => $name,
+            'windows' => $windows
+        ]);
 
         return $group;
     }
 
     /**
-     * 获取窗口组
+     * 获取分组
      */
     public function getGroup(string $name): ?WindowGroup
     {
@@ -305,7 +315,15 @@ class WindowManager
     }
 
     /**
-     * 删除窗口组
+     * 获取所有分组
+     */
+    public function getGroups(): array
+    {
+        return $this->groups;
+    }
+
+    /**
+     * 移除分组
      */
     public function removeGroup(string $name): bool
     {
@@ -314,6 +332,21 @@ class WindowManager
             return true;
         }
         return false;
+    }
+
+    /**
+     * 批量创建多个窗口并分组
+     */
+    public function createGroupedWindows(string $groupName, array $windows): WindowGroup
+    {
+        $group = $this->createGroup($groupName);
+        
+        foreach ($windows as $label => $options) {
+            $window = $this->create($label, $options);
+            $group->add($label);
+        }
+        
+        return $group;
     }
 
     /**

@@ -14,6 +14,7 @@ use think\Facade;
  * @method static \NativePHP\Think\WindowState windowState()
  * @method static \NativePHP\Think\WindowPresets windowPresets()
  * @method static \NativePHP\Think\WindowLayoutPresets windowLayoutPresets()
+ * @method static \NativePHP\Think\WindowGroupStateManager windowGroupStateManager()
  * @method static \NativePHP\Think\EventDispatcher events()
  * @method static \NativePHP\Think\Bridge bridge()
  * @method static mixed getConfig(string $key = null, mixed $default = null)

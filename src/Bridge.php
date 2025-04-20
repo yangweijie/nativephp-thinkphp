@@ -37,6 +37,49 @@ class Bridge
                 $this->events->dispatch('electron.' . $data['event'], $data['payload']);
             }
         });
+
+        // 窗口组操作
+        $this->native->ipc()->handle('window.group.create', function (array $data) {
+            return $this->native->windowManager()->createGroup($data['name'], $data['windows'] ?? []);
+        });
+
+        $this->native->ipc()->handle('window.group.arrange', function (array $data) {
+            $group = $this->native->windowManager()->getGroup($data['name']);
+            if (!$group) return false;
+
+            switch ($data['layout']) {
+                case 'horizontal':
+                    $group->arrangeHorizontal();
+                    break;
+                case 'vertical':
+                    $group->arrangeVertical();
+                    break;
+                case 'grid':
+                    $group->arrangeGrid($data['columns'] ?? 2);
+                    break;
+            }
+            return true;
+        });
+
+        $this->native->ipc()->handle('window.group.save-state', function (array $data) {
+            $group = $this->native->windowManager()->getGroup($data['name']);
+            return $group ? $group->saveState() : false;
+        });
+
+        $this->native->ipc()->handle('window.group.restore-state', function (array $data) {
+            $group = $this->native->windowManager()->getGroup($data['name']);
+            return $group ? $group->loadState() : false;
+        });
+
+        $this->native->ipc()->handle('window.group.add', function (array $data) {
+            $group = $this->native->windowManager()->getGroup($data['name']);
+            return $group ? $group->add($data['window']) : false;
+        });
+
+        $this->native->ipc()->handle('window.group.remove', function (array $data) {
+            $group = $this->native->windowManager()->getGroup($data['name']);
+            return $group ? $group->remove($data['window']) : false;
+        });
     }
 
     public function emit(string $event, array $payload = [])
@@ -100,6 +143,33 @@ class Bridge
 
             return $this->native->windowLayoutPresets()
                 ->apply($data['layout'], $data['windows']);
+        });
+
+        // 添加窗口组状态管理相关的处理器
+        $this->native->ipc()->handle('window.group.auto-save-all', function () {
+            return $this->native->windowGroupStateManager()->autoSaveAll();
+        });
+
+        $this->native->ipc()->handle('window.group.auto-restore-all', function () {
+            return $this->native->windowGroupStateManager()->autoRestoreAll();
+        });
+
+        $this->native->ipc()->handle('window.group.clear-all-states', function () {
+            return $this->native->windowGroupStateManager()->clearAll();
+        });
+
+        $this->native->ipc()->handle('window.group.set-cache-config', function (array $data) {
+            $manager = $this->native->windowGroupStateManager();
+            
+            if (isset($data['key'])) {
+                $manager->setCacheKey($data['key']);
+            }
+            
+            if (isset($data['expire'])) {
+                $manager->setExpireTime((int)$data['expire']);
+            }
+            
+            return true;
         });
     }
 }
