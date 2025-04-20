@@ -10,6 +10,7 @@
 - 系统通知
 - 全局快捷键
 - 窗口分组管理
+- 窗口过渡动画
 
 ## 安装
 
@@ -70,6 +71,110 @@ Native::windowLayoutPresets()->define('my-layout', function ($manager, $windows)
 
 // 应用自定义布局
 Native::windowManager()->getGroup('main-group')->applyLayout('my-layout');
+```
+
+## 窗口过渡动画演示
+
+### 基本动画使用
+
+```php
+// 带动画的窗口移动
+Native::window('main')
+    ->transition()
+        ->duration(500)
+        ->easing('easeOutQuint')
+    ->moveTo(100, 100);
+
+// 带动画的窗口大小调整
+Native::window('main')
+    ->transition()
+        ->duration(300)
+        ->easing('easeInOutCubic')
+    ->resizeTo(800, 600);
+
+// 一次性应用完整布局
+Native::window('main')
+    ->transition()
+        ->duration(400)
+        ->easing('easeOutBounce')
+    ->setLayout([
+        'x' => 100,
+        'y' => 100,
+        'width' => 800,
+        'height' => 600
+    ]);
+```
+
+### 动画预设
+
+```php
+// 使用快速动画预设
+Native::window('main')
+    ->transition()
+        ->usePreset('fast')
+    ->moveTo(200, 200);
+
+// 使用弹跳动画预设
+Native::window('main')
+    ->transition()
+        ->usePreset('bounce')
+    ->resizeTo(1000, 800);
+```
+
+### 分组动画
+
+```php
+// 水平排列(带动画)
+Native::windowManager()
+    ->getGroup('main-group')
+    ->arrangeHorizontal(true);
+
+// 垂直排列(带自定义动画)
+Native::windowManager()
+    ->getGroup('main-group')
+    ->transition()
+        ->duration(800)
+        ->easing('easeInOutQuart')
+    ->arrangeVertical(true);
+
+// 网格布局(带弹性动画)
+Native::windowManager()
+    ->getGroup('main-group')
+    ->transition()
+        ->duration(600)
+        ->easing('easeOutElastic')
+    ->arrangeGrid(2, true);
+
+// 瀑布流布局(带弹跳动画)
+Native::windowManager()
+    ->getGroup('main-group')
+    ->transition()
+        ->duration(500)
+        ->easing('easeOutBounce')
+    ->arrangeCascade(true);
+```
+
+### 动画配置
+
+在 `config/native.php` 中配置：
+
+```php
+'transitions' => [
+    'enabled' => true, // 全局启用/禁用动画
+    'duration' => 300, // 默认持续时间
+    'easing' => 'easeInOutCubic', // 默认缓动函数
+    'presets' => [
+        'fast' => [
+            'duration' => 150,
+            'easing' => 'easeOutQuint'
+        ],
+        'slow' => [
+            'duration' => 600,
+            'easing' => 'easeInOutQuint'
+        ],
+        // ... 更多预设
+    ]
+]
 ```
 
 ## 文件结构

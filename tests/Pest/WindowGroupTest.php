@@ -94,4 +94,93 @@ class WindowGroupTest extends TestCase
         expect($restoredWindow->getOptions()['x'])->toBe(100);
         expect($restoredWindow->getOptions()['y'])->toBe(100);
     }
+
+    public function test_can_apply_transition_to_group()
+    {
+        $this->manager->create('window1', ['width' => 800, 'height' => 600]);
+        $this->manager->create('window2', ['width' => 600, 'height' => 400]);
+
+        $this->group->add('window1')->add('window2');
+        
+        $this->group->transition()
+            ->duration(500)
+            ->easing('easeOutBounce');
+
+        $this->group->arrangeHorizontalWithTransition();
+
+        // 验证所有窗口都应用了过渡动画
+        $window1 = $this->manager->get('window1');
+        $window2 = $this->manager->get('window2');
+
+        // 验证窗口1的过渡动画
+        $lastTransition1 = $this->native->ipc()->getLastTransitionMessage('window1');
+        expect($lastTransition1)->toHaveKey('options');
+        expect($lastTransition1['options'])->toMatchArray([
+            'duration' => 500,
+            'easing' => 'easeOutBounce'
+        ]);
+
+        // 验证窗口2的过渡动画
+        $lastTransition2 = $this->native->ipc()->getLastTransitionMessage('window2');
+        expect($lastTransition2)->toHaveKey('options');
+        expect($lastTransition2['options'])->toMatchArray([
+            'duration' => 500,
+            'easing' => 'easeOutBounce'
+        ]);
+    }
+
+    public function test_can_sync_layout_with_transition()
+    {
+        $this->manager->create('window1', ['width' => 800, 'height' => 600]);
+        $this->manager->create('window2', ['width' => 600, 'height' => 400]);
+        $this->group->add('window1')->add('window2');
+
+        $group2 = $this->manager->createGroup('test-group-2');
+        $this->manager->create('window3', ['width' => 800, 'height' => 600]);
+        $this->manager->create('window4', ['width' => 600, 'height' => 400]);
+        $group2->add('window3')->add('window4');
+
+        // 设置源组的布局和过渡动画
+        $this->group->transition()
+            ->duration(600)
+            ->easing('easeOutElastic');
+
+        // 同步布局到目标组
+        $this->group->syncLayoutWithTransition('test-group-2');
+
+        // 验证目标组窗口的过渡动画
+        $lastTransition3 = $this->native->ipc()->getLastTransitionMessage('window3');
+        expect($lastTransition3)->toHaveKey('options');
+        expect($lastTransition3['options'])->toMatchArray([
+            'duration' => 600,
+            'easing' => 'easeOutElastic'
+        ]);
+
+        $lastTransition4 = $this->native->ipc()->getLastTransitionMessage('window4');
+        expect($lastTransition4)->toHaveKey('options');
+        expect($lastTransition4['options'])->toMatchArray([
+            'duration' => 600,
+            'easing' => 'easeOutElastic'
+        ]);
+    }
+
+    public function test_can_use_transition_presets()
+    {
+        $this->manager->create('window1', ['width' => 800, 'height' => 600]);
+        $this->manager->create('window2', ['width' => 600, 'height' => 400]);
+        $this->group->add('window1')->add('window2');
+
+        // 应用快速动画预设
+        $this->group->transition()
+            ->usePreset('fast');
+        $this->group->arrangeHorizontalWithTransition();
+
+        // 验证预设被正确应用
+        $lastTransition = $this->native->ipc()->getLastTransitionMessage('window1');
+        expect($lastTransition)->toHaveKey('options');
+        expect($lastTransition['options'])->toMatchArray([
+            'duration' => 150,
+            'easing' => 'easeOutQuint'
+        ]);
+    }
 }

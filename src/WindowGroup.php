@@ -4,7 +4,7 @@ namespace NativePHP\Think;
 
 use NativePHP\Think\Contract\WindowGroupContract;
 
-class WindowGroup implements WindowGroupContract, WindowGroupLayoutContract
+class WindowGroup implements WindowGroupContract, WindowGroupLayoutContract, WindowGroupTransitionContract
 {
     /**
      * @var array<string, Window>
@@ -40,6 +40,11 @@ class WindowGroup implements WindowGroupContract, WindowGroupLayoutContract
      * @var string|null
      */
     protected ?string $currentLayout = null;
+
+    /**
+     * @var WindowTransition|null
+     */
+    protected ?WindowTransition $groupTransition = null;
     
     public function __construct(
         protected WindowManager $windowManager,
@@ -123,29 +128,110 @@ class WindowGroup implements WindowGroupContract, WindowGroupLayoutContract
     }
 
     /**
-     * 水平排列组内窗口
+     * 水平排列组内窗口(支持动画)
      */
-    public function arrangeHorizontal(): self
+    public function arrangeHorizontal(bool $animate = true): self
     {
-        $this->windowManager->arrange($this->all(), 'horizontal');
+        $screenWidth = $this->windowManager->getScreenWidth();
+        $count = count($this->windows);
+        if ($count === 0) return $this;
+        
+        $width = floor($screenWidth / $count);
+
+        foreach ($this->windows as $index => $window) {
+            $window->setLayout([
+                'x' => $width * $index,
+                'y' => 0,
+                'width' => $width,
+                'height' => $this->windowManager->getScreenHeight()
+            ], $animate);
+        }
+
+        $this->currentLayout = 'horizontal';
+        $this->trigger('layout.changed', ['layout' => 'horizontal']);
         return $this;
     }
 
     /**
-     * 垂直排列组内窗口
+     * 垂直排列组内窗口(支持动画)
      */
-    public function arrangeVertical(): self
+    public function arrangeVertical(bool $animate = true): self
     {
-        $this->windowManager->arrange($this->all(), 'vertical');
+        $screenHeight = $this->windowManager->getScreenHeight();
+        $count = count($this->windows);
+        if ($count === 0) return $this;
+        
+        $height = floor($screenHeight / $count);
+
+        foreach ($this->windows as $index => $window) {
+            $window->setLayout([
+                'x' => 0,
+                'y' => $height * $index,
+                'width' => $this->windowManager->getScreenWidth(),
+                'height' => $height
+            ], $animate);
+        }
+
+        $this->currentLayout = 'vertical';
+        $this->trigger('layout.changed', ['layout' => 'vertical']);
         return $this;
     }
 
     /**
-     * 网格布局组内窗口
+     * 网格布局组内窗口(支持动画)
      */
-    public function arrangeGrid(int $columns = 2): self
+    public function arrangeGrid(int $columns = 2, bool $animate = true): self
     {
-        $this->windowManager->grid($this->all(), $columns);
+        $count = count($this->windows);
+        if ($count === 0) return $this;
+
+        $rows = ceil($count / $columns);
+        $width = floor($this->windowManager->getScreenWidth() / $columns);
+        $height = floor($this->windowManager->getScreenHeight() / $rows);
+        
+        $x = 0;
+        $y = 0;
+        $col = 0;
+
+        foreach ($this->windows as $window) {
+            $window->setLayout([
+                'x' => $x,
+                'y' => $y,
+                'width' => $width,
+                'height' => $height
+            ], $animate);
+
+            $col++;
+            if ($col >= $columns) {
+                $col = 0;
+                $x = 0;
+                $y += $height;
+            } else {
+                $x += $width;
+            }
+        }
+
+        $this->currentLayout = 'grid';
+        $this->trigger('layout.changed', ['layout' => 'grid', 'columns' => $columns]);
+        return $this;
+    }
+    
+    /**
+     * 瀑布流布局(支持动画)
+     */
+    public function arrangeCascade(bool $animate = true): self 
+    {
+        $offset = 30; // 窗口错开的像素值
+        
+        foreach ($this->windows as $index => $window) {
+            $window->setLayout([
+                'x' => $offset * $index,
+                'y' => $offset * $index,
+            ], $animate);
+        }
+
+        $this->currentLayout = 'cascade';
+        $this->trigger('layout.changed', ['layout' => 'cascade']);
         return $this;
     }
 
@@ -226,11 +312,53 @@ class WindowGroup implements WindowGroupContract, WindowGroupLayoutContract
     }
 
     /**
+     * 应用布局预设(带过渡动画)
+     */
+    public function applyLayoutWithTransition(string $preset, array $options = [], bool $animate = true): self
+    {
+        $transitionOptions = $this->transition()->getOptions();
+        
+        foreach ($this->windows as $window) {
+            if ($animate) {
+                $window->transition()
+                    ->duration($transitionOptions['duration'])
+                    ->easing($transitionOptions['easing']);
+            }
+        }
+        
+        $this->applyLayout($preset, $options);
+        return $this;
+    }
+
+    /**
      * 同步窗口组布局到其他组
      */
     public function syncLayout(string $targetGroup): self
     {
         if ($target = $this->windowManager->getGroup($targetGroup)) {
+            $target->applyLayout($this->getCurrentLayout(), $this->getLayoutOptions());
+        }
+        return $this;
+    }
+
+    /**
+     * 同步分组布局(带过渡动画)
+     */
+    public function syncLayoutWithTransition(string $targetGroup, bool $animate = true): self
+    {
+        if ($target = $this->windowManager->getGroup($targetGroup)) {
+            $transitionOptions = $this->transition()->getOptions();
+            
+            foreach ($target->all() as $label) {
+                if ($window = $this->windowManager->get($label)) {
+                    if ($animate) {
+                        $window->transition()
+                            ->duration($transitionOptions['duration'])
+                            ->easing($transitionOptions['easing']);
+                    }
+                }
+            }
+            
             $target->applyLayout($this->getCurrentLayout(), $this->getLayoutOptions());
         }
         return $this;
@@ -399,5 +527,50 @@ class WindowGroup implements WindowGroupContract, WindowGroupLayoutContract
                 $callback($data, $this);
             }
         }
+    }
+
+    /**
+     * 获取分组的过渡动画实例
+     */
+    public function transition(): WindowTransitionContract
+    {
+        if (!$this->groupTransition) {
+            // 创建一个虚拟窗口来管理分组的过渡动画
+            $window = new Window($this->windowManager->native);
+            $this->groupTransition = new WindowTransition($window);
+        }
+        return $this->groupTransition;
+    }
+
+    /**
+     * 水平排列(带过渡动画)
+     */
+    public function arrangeHorizontalWithTransition(bool $animate = true): self
+    {
+        return $this->arrangeHorizontal($animate);
+    }
+
+    /**
+     * 垂直排列(带过渡动画)
+     */
+    public function arrangeVerticalWithTransition(bool $animate = true): self
+    {
+        return $this->arrangeVertical($animate);
+    }
+
+    /**
+     * 网格布局(带过渡动画)
+     */
+    public function arrangeGridWithTransition(int $columns = 2, bool $animate = true): self
+    {
+        return $this->arrangeGrid($columns, $animate);
+    }
+
+    /**
+     * 瀑布流布局(带过渡动画)
+     */
+    public function arrangeCascadeWithTransition(bool $animate = true): self
+    {
+        return $this->arrangeCascade($animate);
     }
 }

@@ -14,26 +14,40 @@ class NativeController
     public function initialize()
     {
         // 创建主窗口分组
-        Native::windowManager()->createGroup('main-group')
-            ->add('main')
-            ->add('editor')
-            ->arrangeHorizontal();
-        
-        // 创建主窗口
+        $group = Native::windowManager()->createGroup('main-group');
+
+        // 创建主窗口(带动画)
         Native::window('main')
             ->title('NativePHP-ThinkPHP 示例应用')
             ->width(800)
             ->height(600)
-            ->center()
-            ->show();
-        
-        // 创建编辑器窗口
+            ->transition()
+                ->duration(500)
+                ->easing('easeOutQuint')
+            ->setLayout([
+                'x' => 100,
+                'y' => 100,
+                'width' => 800,
+                'height' => 600,
+            ]);
+
+        // 创建编辑器窗口(带动画)
         Native::window('editor')
             ->title('编辑器')
             ->width(600)
             ->height(600)
-            ->center()
-            ->show();
+            ->transition()
+                ->duration(500)
+                ->easing('easeOutQuint')
+            ->setLayout([
+                'x' => 920,
+                'y' => 100,
+                'width' => 600,
+                'height' => 600,
+            ]);
+
+        // 添加窗口到分组
+        $group->add('main')->add('editor');
         
         // 创建系统托盘
         Native::tray()
@@ -46,11 +60,39 @@ class NativeController
                 Native::window('editor')->show();
             })
             ->addSeparator()
-            ->addItem('水平排列', function () {
-                Native::windowManager()->getGroup('main-group')->arrangeHorizontal();
-            })
-            ->addItem('垂直排列', function () {
-                Native::windowManager()->getGroup('main-group')->arrangeVertical();
+            ->addSubmenu('窗口布局', function ($menu) {
+                $menu->add('水平排列 (快速)', function () {
+                    Native::windowManager()
+                        ->getGroup('main-group')
+                        ->arrangeHorizontal(true);
+                });
+                
+                $menu->add('垂直排列 (缓慢)', function () {
+                    Native::windowManager()
+                        ->getGroup('main-group')
+                        ->transition()
+                            ->duration(800)
+                            ->easing('easeInOutQuart')
+                        ->arrangeVertical(true);
+                });
+                
+                $menu->add('网格布局 (弹性)', function () {
+                    Native::windowManager()
+                        ->getGroup('main-group')
+                        ->transition()
+                            ->duration(600)
+                            ->easing('easeOutElastic')
+                        ->arrangeGrid(2, true);
+                });
+                
+                $menu->add('瀑布流布局 (弹跳)', function () {
+                    Native::windowManager()
+                        ->getGroup('main-group')
+                        ->transition()
+                            ->duration(500)
+                            ->easing('easeOutBounce')
+                        ->arrangeCascade(true);
+                });
             })
             ->addSeparator()
             ->addItem('退出', function () {
@@ -75,24 +117,28 @@ class NativeController
                     Native::exit();
                 })->accelerator('CmdOrCtrl+Q');
             })
-            ->addSubmenu('窗口', function ($menu) {
-                $menu->add('显示全部', function () {
-                    Native::windowManager()->getGroup('main-group')->showAll();
-                });
-                
-                $menu->add('隐藏全部', function () {
-                    Native::windowManager()->getGroup('main-group')->hideAll();
-                });
-                
-                $menu->addSeparator();
+            ->addSubmenu('布局', function ($menu) {
+                $menu->add('默认布局', function () {
+                    $this->resetLayout();
+                })->accelerator('CmdOrCtrl+R');
                 
                 $menu->add('水平排列', function () {
-                    Native::windowManager()->getGroup('main-group')->arrangeHorizontal();
-                });
+                    Native::windowManager()
+                        ->getGroup('main-group')
+                        ->arrangeHorizontal(true);
+                })->accelerator('CmdOrCtrl+H');
                 
                 $menu->add('垂直排列', function () {
-                    Native::windowManager()->getGroup('main-group')->arrangeVertical();
-                });
+                    Native::windowManager()
+                        ->getGroup('main-group')
+                        ->arrangeVertical(true);
+                })->accelerator('CmdOrCtrl+V');
+                
+                $menu->add('网格布局', function () {
+                    Native::windowManager()
+                        ->getGroup('main-group')
+                        ->arrangeGrid(2, true);
+                })->accelerator('CmdOrCtrl+G');
             })
             ->addSubmenu('帮助', function ($menu) {
                 $menu->add('关于', function () {
@@ -120,6 +166,34 @@ class NativeController
             ->title($title)
             ->body($message)
             ->show();
+    }
+    
+    /**
+     * 重置布局到默认状态
+     */
+    protected function resetLayout()
+    {
+        Native::window('main')
+            ->transition()
+                ->duration(500)
+                ->easing('easeOutQuint')
+            ->setLayout([
+                'x' => 100,
+                'y' => 100,
+                'width' => 800,
+                'height' => 600,
+            ]);
+
+        Native::window('editor')
+            ->transition()
+                ->duration(500)
+                ->easing('easeOutQuint')
+            ->setLayout([
+                'x' => 920,
+                'y' => 100,
+                'width' => 600,
+                'height' => 600,
+            ]);
     }
     
     /**

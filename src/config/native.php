@@ -172,4 +172,33 @@ return [
         'url' => null,
         'interval' => 60 * 60 * 1000, // 1小时
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | 窗口动画设置
+    |--------------------------------------------------------------------------
+    */
+    'transitions' => [
+        'enabled' => true,
+        'duration' => 300,
+        'easing' => 'easeInOutCubic',
+        'presets' => [
+            'fast' => [
+                'duration' => 150,
+                'easing' => 'easeOutQuint'
+            ],
+            'slow' => [
+                'duration' => 600,
+                'easing' => 'easeInOutQuint'
+            ],
+            'bounce' => [
+                'duration' => 500,
+                'easing' => 'easeOutBounce'
+            ],
+            'elastic' => [
+                'duration' => 600,
+                'easing' => 'easeOutElastic'
+            ]
+        ]
+    ],
 ];

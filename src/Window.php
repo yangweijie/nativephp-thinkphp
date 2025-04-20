@@ -7,6 +7,8 @@ use NativePHP\Think\Contract\WindowContract;
 class Window implements WindowContract
 {
     protected array $options = [];
+    protected ?WindowTransition $transition = null;
+    protected array $state = [];
     
     public function __construct(protected Native $native)
     {
@@ -166,5 +168,98 @@ class Window implements WindowContract
     {
         $this->native->events()->dispatch('window.closed', $this->options);
         return $this;
+    }
+
+    /**
+     * 获取过渡动画实例
+     */
+    public function transition(): WindowTransition
+    {
+        if (!$this->transition) {
+            $this->transition = new WindowTransition($this);
+        }
+        return $this->transition;
+    }
+
+    /**
+     * 应用新的窗口布局，支持动画过渡
+     */
+    public function setLayout(array $layout, bool $animate = true): self
+    {
+        if (!$animate) {
+            return $this->configure($layout);
+        }
+
+        return $this->transition()->layout($layout);
+    }
+
+    /**
+     * 移动窗口到指定位置，支持动画过渡
+     */
+    public function moveTo(int $x, int $y, bool $animate = true): self
+    {
+        if (!$animate) {
+            return $this->x($x)->y($y);
+        }
+
+        return $this->transition()->moveTo($x, $y);
+    }
+
+    /**
+     * 调整窗口大小，支持动画过渡
+     */
+    public function resizeTo(int $width, int $height, bool $animate = true): self
+    {
+        if (!$animate) {
+            return $this->width($width)->height($height);
+        }
+
+        return $this->transition()->resizeTo($width, $height);
+    }
+
+    /**
+     * 设置窗口状态
+     */
+    public function setState(string $key, $value): self
+    {
+        $this->state[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * 获取窗口状态
+     */
+    public function getState(string $key, $default = null)
+    {
+        return $this->state[$key] ?? $default;
+    }
+
+    /**
+     * 删除窗口状态
+     */
+    public function clearState(string $key = null): self
+    {
+        if ($key === null) {
+            $this->state = [];
+        } else {
+            unset($this->state[$key]);
+        }
+        return $this;
+    }
+
+    /**
+     * 检查是否处于过渡动画中
+     */
+    public function isTransitioning(): bool
+    {
+        return $this->getState('transitioning', false);
+    }
+
+    /**
+     * 获取所有状态
+     */
+    public function getAllStates(): array
+    {
+        return $this->state;
     }
 }

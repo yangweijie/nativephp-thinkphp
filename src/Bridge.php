@@ -23,6 +23,38 @@ class Bridge
 
         // 监听来自Electron的事件
         $this->listenFromElectron();
+
+        // 监听窗口过渡动画事件
+        $this->events->listen('window.transition.start', function ($payload) {
+            if (isset($payload['window']['label'])) {
+                $window = $this->native->window($payload['window']['label']);
+                $window->setState('transitioning', true);
+            }
+        });
+
+        $this->events->listen('window.transition.complete', function ($payload) {
+            if (isset($payload['window']['label'])) {
+                $window = $this->native->window($payload['window']['label']);
+                $window->setState('transitioning', false);
+                
+                // 应用最终布局
+                if (isset($payload['to'])) {
+                    $window->configure($payload['to']);
+                }
+            }
+        });
+
+        $this->events->listen('window.transition.cancel', function ($payload) {
+            if (isset($payload['window']['label'])) {
+                $window = $this->native->window($payload['window']['label']);
+                $window->setState('transitioning', false);
+                
+                // 恢复原始布局
+                if (isset($payload['from'])) {
+                    $window->configure($payload['from']);
+                }
+            }
+        });
     }
 
     protected function sendToElectron(string $event, array $payload = [])
@@ -170,6 +202,27 @@ class Bridge
             }
             
             return true;
+        });
+
+        // 添加过渡动画相关的处理器
+        $this->native->ipc()->handle('window.transition.start', function (array $data) {
+            return $this->native->events()->dispatch('window.transition.start', $data);
+        });
+
+        $this->native->ipc()->handle('window.transition.complete', function (array $data) {
+            if (isset($data['window'], $data['to'])) {
+                $window = $this->native->window($data['window']);
+                $window->configure($data['to']);
+            }
+            return $this->native->events()->dispatch('window.transition.complete', $data);
+        });
+
+        $this->native->ipc()->handle('window.transition.cancel', function (array $data) {
+            if (isset($data['window'], $data['from'])) {
+                $window = $this->native->window($data['window']);
+                $window->configure($data['from']);
+            }
+            return $this->native->events()->dispatch('window.transition.cancel', $data);
         });
     }
 }

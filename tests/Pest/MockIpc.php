@@ -2,39 +2,72 @@
 
 namespace NativePHP\Think\Tests\Pest;
 
-/**
- * 模拟 Ipc 类，用于测试
- */
-class MockIpc
+use NativePHP\Think\Contract\IpcContract;
+
+class MockIpc implements IpcContract
 {
-    protected $handlers = [];
-    protected $sentMessages = [];
-    
-    public function __construct($native) {}
-    
-    public function handle($channel, $handler) {
-        $this->handlers[$channel] = $handler;
+    protected array $handlers = [];
+    protected array $messages = [];
+    protected array $transitionMessages = [];
+
+    public function handle(string $event, callable $handler): self
+    {
+        $this->handlers[$event] = $handler;
         return $this;
     }
-    
-    public function send($channel, $data = null) {
-        $this->sentMessages[] = [
-            'channel' => $channel,
-            'data' => $data,
+
+    public function send(string $event, array $payload = []): self
+    {
+        $this->messages[] = [
+            'event' => $event,
+            'data' => $payload
         ];
-        
-        if (isset($this->handlers[$channel])) {
-            call_user_func($this->handlers[$channel], $data);
+
+        // 对过渡动画消息进行特殊处理
+        if ($event === 'window.transition' && isset($payload['window']['label'])) {
+            $this->transitionMessages[$payload['window']['label']] = $payload;
         }
-        
+
         return $this;
     }
-    
-    public function getSentMessages() {
-        return $this->sentMessages;
+
+    public function on(string $event, callable $callback): self
+    {
+        return $this;
     }
-    
-    public function getHandlers() {
-        return $this->handlers;
+
+    public function dispatch(string $event, array $payload = []): mixed
+    {
+        if (isset($this->handlers[$event])) {
+            return ($this->handlers[$event])($payload);
+        }
+        return null;
+    }
+
+    public function getLastMessage(): ?array
+    {
+        return end($this->messages) ?: null;
+    }
+
+    public function getAllMessages(): array
+    {
+        return $this->messages;
+    }
+
+    public function getLastTransitionMessage(string $windowLabel): ?array
+    {
+        return $this->transitionMessages[$windowLabel] ?? null;
+    }
+
+    public function getAllTransitionMessages(): array
+    {
+        return $this->transitionMessages;
+    }
+
+    public function clearMessages(): self
+    {
+        $this->messages = [];
+        $this->transitionMessages = [];
+        return $this;
     }
 }
