@@ -1,0 +1,56 @@
+{
+    "name": "yangweijie/native-thinkphp",
+    "description": "thinkphp wrapper for the NativePHP framework.",
+    "keywords": [
+        "nativephp",
+        "thinkphp",
+        "nativephp-thinkphp"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.0",
+        "topthink/framework": "^8.0",
+        "illuminate/contracts": "^10.0|^11.0",
+        "symfony/finder": "^6.2|^7.0"
+    },
+    "require-dev": {
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "native\\thinkphp\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+
+        }
+    },
+    "scripts": {
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "think": {
+            "services": [
+                "native\\thinkphp\\NativeService"
+            ]
+        },
+        "laravel": {
+            "providers": [
+              "Native\\Laravel\\NativeServiceProvider"
+            ],
+            "aliases": {
+                "ContextMenu": "Native\\Laravel\\Facades\\ContextMenu",
+                "Dock": "Native\\Laravel\\Facades\\Dock",
+                "Process": "Native\\Laravel\\Facades\\Process",
+                "Window": "Native\\Laravel\\Facades\\Window",
+                "Clipboard": "Native\\Laravel\\Facades\\Clipboard"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
