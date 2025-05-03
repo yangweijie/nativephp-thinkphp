@@ -1,7 +1,6 @@
 <?php
 
-namespace Native\Laravel\Contracts;
-
+namespace native\thinkphp\contract;
 interface ChildProcess
 {
     public function get(?string $alias = null): ?self;

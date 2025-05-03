@@ -1,8 +1,9 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
+
+use think\Facade;
 
 /**
  * @method static static title(string $title)
@@ -12,8 +13,8 @@ use Illuminate\Support\Facades\Facade;
  */
 class Notification extends Facade
 {
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return \Native\Laravel\Notification::class;
+        return \native\thinkphp\Notification::class;
     }
 }

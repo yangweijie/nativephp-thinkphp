@@ -1,8 +1,8 @@
 <?php
 
-namespace Native\Laravel\Menu\Items;
+namespace native\thinkphp\menu\items;
 
-use Native\Laravel\Enums\RolesEnum;
+use native\thinkphp\enums\RolesEnum;
 
 class Role extends MenuItem
 {

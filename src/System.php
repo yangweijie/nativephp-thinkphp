@@ -1,10 +1,10 @@
 <?php
 
-namespace Native\Laravel;
+namespace native\thinkphp;
 
-use Native\Laravel\Client\Client;
-use Native\Laravel\DataObjects\Printer;
-use Native\Laravel\Support\Timezones;
+use native\thinkphp\dataObjects\Printer;
+use native\thinkphp\client\Client;
+use native\thinkphp\support\Timezones;
 
 class System
 {
@@ -42,7 +42,7 @@ class System
     }
 
     /**
-     * @return array<\Native\Laravel\DataObjects\Printer>
+     * @return Printer[]
      */
     public function printers(): array
     {

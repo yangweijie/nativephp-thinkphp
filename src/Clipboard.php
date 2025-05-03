@@ -1,14 +1,15 @@
 <?php
 
-namespace Native\Laravel;
+namespace native\thinkphp;
 
-use Native\Laravel\Client\Client;
+
+use native\thinkphp\client\Client;
 
 class Clipboard
 {
     public function __construct(protected Client $client) {}
 
-    public function clear()
+    public function clear(): void
     {
         $this->client->delete('clipboard');
     }

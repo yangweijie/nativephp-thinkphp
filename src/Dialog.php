@@ -1,11 +1,11 @@
 <?php
 
-namespace Native\Laravel;
+namespace native\thinkphp;
 
-use Illuminate\Support\Traits\Conditionable;
-use Illuminate\Support\Traits\Macroable;
-use Native\Laravel\Client\Client;
-use Native\Laravel\Facades\Window;
+use native\thinkphp\facade\Window;
+use native\thinkphp\client\Client;
+use native\thinkphp\support\traits\Conditionable;
+use think\helper\Macroable;
 
 class Dialog
 {
@@ -16,7 +16,7 @@ class Dialog
 
     protected $defaultPath;
 
-    protected $buttonLabel = 'Select';
+    protected string $buttonLabel = 'Select';
 
     protected $properties = [
         'openFile',

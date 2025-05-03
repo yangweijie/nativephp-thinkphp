@@ -12,4 +12,7 @@ return array(
     '35fab96057f1bf5e7aba31a8a6d5fdde' => $vendorDir . '/topthink/think-orm/stubs/load_stubs.php',
     '15ec93fa4ce4b2d53816a1a5f2c514e2' => $vendorDir . '/topthink/think-validate/src/helper.php',
     '37a3dc5111fe8f707ab4c132ef1dbc62' => $vendorDir . '/guzzlehttp/guzzle/src/functions_include.php',
+    '6124b4c8570aa390c21fafd04a26c69f' => $vendorDir . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+    'ec07570ca5a812141189b1fa81503674' => $vendorDir . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
+    '8c652e10fce5e3704fec4b8d059b735a' => $baseDir . '/src/helper.php',
 );

@@ -1,11 +1,11 @@
 <?php
 
-namespace Native\Laravel\Fakes;
+namespace native\thinkphp\fakes;
 
 use Closure;
-use Native\Laravel\Contracts\PowerMonitor as PowerMonitorContract;
-use Native\Laravel\Enums\SystemIdleStatesEnum;
-use Native\Laravel\Enums\ThermalStatesEnum;
+use native\thinkphp\contract\PowerMonitor as PowerMonitorContract;
+use native\thinkphp\enums\SystemIdleStatesEnum;
+use native\thinkphp\enums\ThermalStatesEnum;
 use PHPUnit\Framework\Assert as PHPUnit;
 
 class PowerMonitorFake implements PowerMonitorContract

@@ -1,12 +1,13 @@
 <?php
 
-namespace Native\Laravel\Windows;
+namespace native\thinkphp\windows;
 
-use Native\Laravel\Client\Client;
-use Native\Laravel\Concerns\HasDimensions;
-use Native\Laravel\Concerns\HasUrl;
-use Native\Laravel\Concerns\HasVibrancy;
-use Native\Laravel\Facades\Window as WindowFacade;
+
+use native\thinkphp\concern\HasDimensions;
+use native\thinkphp\concern\HasUrl;
+use native\thinkphp\concern\HasVibrancy;
+use native\thinkphp\facade\Window as WindowFacade;
+use native\thinkphp\client\Client;
 
 class Window
 {

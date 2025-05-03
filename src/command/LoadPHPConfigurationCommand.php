@@ -1,9 +1,10 @@
 <?php
 
-namespace Native\Laravel\Commands;
+namespace native\thinkphp\command;
 
-use Illuminate\Console\Command;
+
 use Native\Laravel\Contracts\ProvidesPhpIni;
+use think\console\Command;
 
 class LoadPHPConfigurationCommand extends Command
 {

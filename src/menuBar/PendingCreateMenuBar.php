@@ -1,7 +1,6 @@
 <?php
 
-namespace Native\Laravel\MenuBar;
-
+namespace native\thinkphp\menuBar;
 class PendingCreateMenuBar extends MenuBar
 {
     public function __destruct()

@@ -1,8 +1,9 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
+
+use think\Facade;
 
 /**
  * @method static void showInFolder(string $path)
@@ -14,6 +15,6 @@ class Shell extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \Native\Laravel\Shell::class;
+        return \native\thinkphp\Shell::class;
     }
 }

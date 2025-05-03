@@ -1,8 +1,10 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
+
+
+use think\Facade;
 
 /**
  * @method static void focus()
@@ -16,8 +18,8 @@ use Illuminate\Support\Facades\Facade;
  */
 class App extends Facade
 {
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return \Native\Laravel\App::class;
+        return \native\thinkphp\App::class;
     }
 }

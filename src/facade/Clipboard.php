@@ -1,8 +1,10 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
+
+
+use think\Facade;
 
 /**
  * @method static void clear()
@@ -12,8 +14,8 @@ use Illuminate\Support\Facades\Facade;
  */
 class Clipboard extends Facade
 {
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return \Native\Laravel\Clipboard::class;
+        return \native\thinkphp\Clipboard::class;
     }
 }

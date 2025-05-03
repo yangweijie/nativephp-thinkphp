@@ -1,20 +1,20 @@
 <?php
 
-namespace Native\Laravel\Http\Controllers;
+namespace native\thinkphp\http\controller;
 
-use Illuminate\Http\Request;
 use Native\Laravel\Events\App\ApplicationBooted;
+use think\facade\Request;
 
 class NativeAppBootedController
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): \think\response\Json
     {
         $provider = app(config('nativephp.provider'));
         $provider->boot();
 
         event(new ApplicationBooted);
 
-        return response()->json([
+        return json([
             'success' => true,
         ]);
     }

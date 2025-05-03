@@ -1,8 +1,10 @@
 <?php
 
-namespace Native\Laravel;
+namespace native\thinkphp;
 
-use Native\Laravel\Client\Client;
+
+
+use native\thinkphp\client\Client;
 
 class Notification
 {

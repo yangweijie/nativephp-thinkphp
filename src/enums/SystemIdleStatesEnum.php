@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Enums;
+namespace native\thinkphp\enums;
 
 enum SystemIdleStatesEnum: string
 {

@@ -1,10 +1,10 @@
 <?php
 
-namespace Native\Laravel\Menu\Items;
+namespace native\thinkphp\menu\items;
 
-use Native\Laravel\Contracts\MenuItem as MenuItemContract;
-use Native\Laravel\Facades\Menu as MenuFacade;
-use Native\Laravel\Menu\Menu;
+use native\thinkphp\contract\MenuItem as MenuItemContract;
+use native\thinkphp\facade\Menu as MenuFacade;
+
 
 abstract class MenuItem implements MenuItemContract
 {

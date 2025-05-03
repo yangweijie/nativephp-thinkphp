@@ -1,13 +1,13 @@
 <?php
 
-namespace Native\Laravel\Fakes;
+namespace native\thinkphp\fakes;
 
 use Closure;
-use Illuminate\Support\Arr;
-use Native\Laravel\Client\Client;
-use Native\Laravel\Contracts\WindowManager as WindowManagerContract;
-use Native\Laravel\Windows\Window;
+use native\thinkphp\client\Client;
+use native\thinkphp\contract\WindowManager as WindowManagerContract;
+use native\thinkphp\windows\Window;
 use PHPUnit\Framework\Assert as PHPUnit;
+use think\helper\Arr;
 use Webmozart\Assert\Assert;
 
 class WindowManagerFake implements WindowManagerContract

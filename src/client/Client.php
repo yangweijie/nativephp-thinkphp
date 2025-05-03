@@ -1,14 +1,14 @@
 <?php
 
-namespace Native\Laravel\Client;
+namespace native\thinkphp\client;
 
-use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
+use native\thinkphp\facade\Http;
+use yzh52521\EasyHttp\Request;
+use yzh52521\EasyHttp\Response;
 
 class Client
 {
-    protected PendingRequest $client;
+    protected Request $client;
 
     public function __construct()
     {

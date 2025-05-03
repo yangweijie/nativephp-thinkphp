@@ -1,9 +1,8 @@
 <?php
 
-namespace Native\Laravel\Fakes;
-
+namespace native\thinkphp\fakes;
 use Closure;
-use Native\Laravel\Contracts\GlobalShortcut as GlobalShortcutContract;
+use native\thinkphp\contract\GlobalShortcut as GlobalShortcutContract;
 use PHPUnit\Framework\Assert as PHPUnit;
 
 class GlobalShortcutFake implements GlobalShortcutContract

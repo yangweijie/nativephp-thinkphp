@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Commands;
+namespace native\thinkphp\command;
 
 use Illuminate\Database\Console\Seeds\SeedCommand as BaseSeedCommand;
 use Native\Laravel\NativeServiceProvider;

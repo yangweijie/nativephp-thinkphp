@@ -1,9 +1,9 @@
 <?php
 
-namespace Native\Laravel\Concerns;
+namespace native\thinkphp\concern;
 
 use Closure;
-use Native\Laravel\ProgressBar;
+use native\thinkphp\ProgressBar;
 
 trait InteractsWithNativeApp
 {

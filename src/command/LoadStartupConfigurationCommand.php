@@ -1,8 +1,9 @@
 <?php
 
-namespace Native\Laravel\Commands;
+namespace native\thinkphp\command;
 
-use Illuminate\Console\Command;
+
+use think\console\Command;
 
 class LoadStartupConfigurationCommand extends Command
 {

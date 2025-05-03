@@ -36,7 +36,7 @@ return [
      * takes care of bootstrapping your application and configuring
      * any global hotkeys, menus, windows, etc.
      */
-    'provider' => \App\Providers\NativeAppServiceProvider::class,
+    'provider' => App\Services\NativeAppService::class,
 
     /**
      * A list of environment keys that should be removed from the

@@ -1,9 +1,9 @@
 <?php
 
-namespace Native\Laravel\Contracts;
+namespace native\thinkphp\contract;
 
-use Native\Laravel\Enums\SystemIdleStatesEnum;
-use Native\Laravel\Enums\ThermalStatesEnum;
+use native\thinkphp\enums\SystemIdleStatesEnum;
+use native\thinkphp\enums\ThermalStatesEnum;
 
 interface PowerMonitor
 {

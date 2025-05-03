@@ -1,8 +1,11 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
+
+
+use native\thinkphp\dataObjects\Printer;
+use think\Facade;
 
 /**
  * @method static bool canPromptTouchID()
@@ -11,7 +14,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static string encrypt(string $string)
  * @method static string decrypt(string $string)
  * @method static array printers()
- * @method static void print(string $html, ?\Native\Laravel\DataObjects\Printer $printer = null)
+ * @method static void print(string $html, ?Printer $printer = null)
  * @method static string printToPDF(string $reason)
  * @method static string timezone()
  */
@@ -19,6 +22,6 @@ class System extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \Native\Laravel\System::class;
+        return \native\thinkphp\System::class;
     }
 }

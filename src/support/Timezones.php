@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Support;
+namespace native\thinkphp\support;
 
 class Timezones
 {

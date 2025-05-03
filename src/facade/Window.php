@@ -1,13 +1,14 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
-use Native\Laravel\Contracts\WindowManager as WindowManagerContract;
-use Native\Laravel\Fakes\WindowManagerFake;
+use Native\Laravel\Windows\PendingOpenWindow;
+use native\thinkphp\contract\WindowManager as WindowManagerContract;
+use native\thinkphp\fakes\WindowManagerFake;
+use think\Facade;
 
 /**
- * @method static \Native\Laravel\Windows\PendingOpenWindow open(string $id = 'main')
+ * @method static PendingOpenWindow open(string $id = 'main')
  * @method static void close($id = null)
  * @method static object current()
  * @method static array all()
@@ -22,9 +23,20 @@ class Window extends Facade
 {
     public static function fake()
     {
-        return tap(static::getFacadeApplication()->make(WindowManagerFake::class), function ($fake) {
+        return tap(app()->make(WindowManagerFake::class), function ($fake) {
             static::swap($fake);
         });
+    }
+
+    public static function swap($instance)
+    {
+        if (property_exists(static::class, 'instance')) {
+            static::$instance = $instance;
+        } else {
+            app()->bind(static::getFacadeClass(), function () use ($instance) {
+                return $instance;
+            });
+        }
     }
 
     protected static function getFacadeAccessor()

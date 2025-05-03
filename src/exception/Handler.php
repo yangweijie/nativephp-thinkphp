@@ -1,15 +1,24 @@
 <?php
 
-namespace Native\Laravel\Exceptions;
+namespace native\thinkphp\exception;
 
-class Handler extends \Illuminate\Foundation\Exceptions\Handler
+use think\exception\Handle;
+use Throwable;
+
+class Handler extends Handle
 {
-    protected $internalDontReport = [];
+    protected $ignoreReport = [];
 
-    public function register(): void
+
+    /**
+     * Report or log an exception.
+     *
+     * @access public
+     * @param Throwable $exception
+     * @return void
+     */
+    public function report(Throwable $exception): void
     {
-        $this->reportable(function (\Throwable $e) {
-            error_log("[NATIVE_EXCEPTION]: {$e->getMessage()} ({$e->getCode()}) in {$e->getFile()}:{$e->getLine()}");
-        });
+        error_log("[NATIVE_EXCEPTION]: {$exception->getMessage()} ({$exception->getCode()}) in {$exception->getFile()}:{$exception->getLine()}");
     }
 }

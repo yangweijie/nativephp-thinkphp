@@ -1,10 +1,11 @@
 <?php
 
-namespace Native\Laravel\Windows;
+namespace native\thinkphp\windows;
 
-use Native\Laravel\Client\Client;
-use Native\Laravel\Concerns\DetectsWindowId;
-use Native\Laravel\Contracts\WindowManager as WindowManagerContract;
+
+use native\thinkphp\contract\WindowManager as WindowManagerContract;
+use native\thinkphp\client\Client;
+use native\thinkphp\concern\DetectsWindowId;
 
 class WindowManager implements WindowManagerContract
 {

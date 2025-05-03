@@ -1,16 +1,17 @@
 <?php
 
-namespace Native\Laravel\Http\Middleware;
+namespace native\thinkphp\http\middleware;
 
 use Closure;
-use Illuminate\Http\Request;
+use think\facade\Request;
+
 
 class PreventRegularBrowserAccess
 {
     public function handle(Request $request, Closure $next)
     {
         // Explicitly skip for the cookie-setting route
-        if ($request->path() === '_native/api/cookie') {
+        if ($request->url() === '_native/api/cookie') {
             return $next($request);
         }
 

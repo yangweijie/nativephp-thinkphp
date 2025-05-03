@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Commands;
+namespace native\thinkphp\command;
 
 use Illuminate\Database\Console\Migrations\FreshCommand as BaseFreshCommand;
 use Native\Laravel\NativeServiceProvider;

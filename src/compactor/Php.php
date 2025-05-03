@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Compactor;
+namespace native\thinkphp\compactor;
 
 use PhpToken;
 use RuntimeException;

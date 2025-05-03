@@ -1,10 +1,11 @@
 <?php
-
-namespace Native\Laravel\Logging;
+// TODO
+namespace native\thinkphp\logging;
 
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Event;
-use Native\Laravel\Client\Client;
+use native\thinkphp\client\Client;
+
 
 class LogWatcher
 {

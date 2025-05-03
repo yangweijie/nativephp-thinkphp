@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Menu\Items;
+namespace native\thinkphp\menu\items;
 
 class Link extends MenuItem
 {

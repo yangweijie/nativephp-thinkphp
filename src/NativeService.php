@@ -1,6 +1,6 @@
 <?php
 namespace native\thinkphp;
-use native\thinkphp\events\EventWatcher;
+use native\thinkphp\event\EventWatcher;
 use native\thinkphp\logging\LogWatcher;
 use think\facade\Console;
 use think\facade\Db;

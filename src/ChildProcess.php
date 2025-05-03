@@ -1,9 +1,10 @@
 <?php
 
-namespace Native\Laravel;
+namespace native\thinkphp;
 
-use Native\Laravel\Client\Client;
-use Native\Laravel\Contracts\ChildProcess as ChildProcessContract;
+
+use native\thinkphp\contract\ChildProcess as ChildProcessContract;
+use native\thinkphp\client\Client;
 
 class ChildProcess implements ChildProcessContract
 {

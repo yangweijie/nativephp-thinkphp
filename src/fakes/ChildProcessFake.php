@@ -1,9 +1,8 @@
 <?php
 
-namespace Native\Laravel\Fakes;
-
+namespace native\thinkphp\fakes;
 use Closure;
-use Native\Laravel\Contracts\ChildProcess as ChildProcessContract;
+use native\thinkphp\contract\ChildProcess as ChildProcessContract;
 use PHPUnit\Framework\Assert as PHPUnit;
 
 class ChildProcessFake implements ChildProcessContract

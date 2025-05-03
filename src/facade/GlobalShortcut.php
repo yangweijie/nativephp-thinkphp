@@ -1,14 +1,15 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
-use Native\Laravel\Contracts\GlobalShortcut as GlobalShortcutContract;
-use Native\Laravel\Fakes\GlobalShortcutFake;
+
+use native\thinkphp\contract\GlobalShortcut as GlobalShortcutContract;
+use native\thinkphp\fakes\GlobalShortcutFake;
+use think\Facade;
 
 /**
- * @method static \Native\Laravel\GlobalShortcut key(string $key)
- * @method static \Native\Laravel\GlobalShortcut event(string $event)
+ * @method static \native\thinkphp\GlobalShortcut key(string $key)
+ * @method static \native\thinkphp\GlobalShortcut event(string $event)
  * @method static void register()
  * @method static void unregister()
  */
@@ -16,12 +17,12 @@ class GlobalShortcut extends Facade
 {
     public static function fake()
     {
-        return tap(static::getFacadeApplication()->make(GlobalShortcutFake::class), function ($fake) {
+        return tap(app()->make(GlobalShortcutFake::class), function ($fake) {
             static::swap($fake);
         });
     }
 
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
         return GlobalShortcutContract::class;
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Commands;
+namespace native\thinkphp\command;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Console\Migrations\MigrateCommand as BaseMigrateCommand;

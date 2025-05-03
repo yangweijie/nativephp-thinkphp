@@ -1,10 +1,10 @@
 <?php
 
-namespace Native\Laravel\Menu;
+namespace native\thinkphp\menu;
 
-use Native\Laravel\Client\Client;
-use Native\Laravel\Contracts\MenuItem;
-use Native\Laravel\Enums\RolesEnum;
+use native\thinkphp\client\Client;
+use native\thinkphp\contract\MenuItem;
+use native\thinkphp\enums\RolesEnum;
 
 class MenuBuilder
 {
@@ -60,7 +60,7 @@ class MenuBuilder
 
     public function route(string $route, ?string $label = null, ?string $hotkey = null): Items\Link
     {
-        return new Items\Link(route($route), $label, $hotkey);
+        return new Items\Link(url($route), $label, $hotkey);
     }
 
     public function app(): Items\Role

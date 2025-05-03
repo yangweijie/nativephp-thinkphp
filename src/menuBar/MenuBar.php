@@ -1,13 +1,14 @@
 <?php
 
-namespace Native\Laravel\MenuBar;
+namespace native\thinkphp\menuBar;
 
-use Native\Laravel\Client\Client;
-use Native\Laravel\Concerns\HasDimensions;
-use Native\Laravel\Concerns\HasPositioner;
-use Native\Laravel\Concerns\HasUrl;
-use Native\Laravel\Concerns\HasVibrancy;
-use Native\Laravel\Menu\Menu;
+
+use native\thinkphp\client\Client;
+use native\thinkphp\concern\HasDimensions;
+use native\thinkphp\concern\HasPositioner;
+use native\thinkphp\concern\HasUrl;
+use native\thinkphp\concern\HasVibrancy;
+use native\thinkphp\menu\Menu;
 
 class MenuBar
 {

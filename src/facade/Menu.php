@@ -1,18 +1,18 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
-use Native\Laravel\Contracts\MenuItem;
-use Native\Laravel\Menu\Items\Checkbox;
-use Native\Laravel\Menu\Items\Label;
-use Native\Laravel\Menu\Items\Link;
-use Native\Laravel\Menu\Items\Radio;
-use Native\Laravel\Menu\Items\Role;
-use Native\Laravel\Menu\Items\Separator;
+use native\thinkphp\contract\MenuItem;
+use native\thinkphp\menu\items\Checkbox;
+use native\thinkphp\menu\items\Label;
+use native\thinkphp\menu\items\Link;
+use native\thinkphp\menu\items\Radio;
+use native\thinkphp\menu\items\Role;
+use native\thinkphp\menu\MenuBuilder;
+use think\Facade;
 
 /**
- * @method static \Native\Laravel\Menu\Menu make(MenuItem ...$items)
+ * @method static \native\thinkphp\menu\Menu make(MenuItem ...$items)
  * @method static Checkbox checkbox(string $label, bool $checked = false, ?string $hotkey = null)
  * @method static Label label(string $label)
  * @method static Link link(string $url, string $label = null, ?string $hotkey = null)
@@ -43,8 +43,8 @@ use Native\Laravel\Menu\Items\Separator;
  */
 class Menu extends Facade
 {
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        return \Native\Laravel\Menu\MenuBuilder::class;
+        return MenuBuilder::class;
     }
 }

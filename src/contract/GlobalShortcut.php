@@ -1,7 +1,6 @@
 <?php
 
-namespace Native\Laravel\Contracts;
-
+namespace native\thinkphp\contract;
 interface GlobalShortcut
 {
     public function key(string $key): self;

@@ -1,8 +1,9 @@
 <?php
 
-namespace Native\Laravel\Http\Controllers;
+namespace native\thinkphp\http\controller;
 
-use Illuminate\Http\Request;
+
+use think\facade\Request;
 
 class DispatchEventFromAppController
 {

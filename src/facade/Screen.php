@@ -1,8 +1,9 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
+
+use think\Facade;
 
 /**
  * @method static object cursorPosition()
@@ -15,6 +16,6 @@ class Screen extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \Native\Laravel\Screen::class;
+        return \native\thinkphp\Screen::class;
     }
 }

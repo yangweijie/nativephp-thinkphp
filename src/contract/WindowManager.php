@@ -1,8 +1,7 @@
 <?php
 
-namespace Native\Laravel\Contracts;
-
-use Native\Laravel\Windows\Window;
+namespace native\thinkphp\contract;
+use native\thinkphp\windows\Window;
 
 interface WindowManager
 {

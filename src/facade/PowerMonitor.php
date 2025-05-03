@@ -1,15 +1,17 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
-use Native\Laravel\Contracts\PowerMonitor as PowerMonitorContract;
-use Native\Laravel\Fakes\PowerMonitorFake;
+use native\thinkphp\facade\PowerMonitor as PowerMonitorContract;
+use native\thinkphp\enums\ThermalStatesEnum;
+use \native\thinkphp\fakes\PowerMonitorFake;
+use native\thinkphp\enums\SystemIdleStatesEnum;
+use think\Facade;
 
 /**
- * @method static \Native\Laravel\Enums\SystemIdleStatesEnum getSystemIdleState(int $threshold)
+ * @method static SystemIdleStatesEnum getSystemIdleState(int $threshold)
  * @method static int getSystemIdleTime()
- * @method static \Native\Laravel\Enums\ThermalStatesEnum getCurrentThermalState()
+ * @method static ThermalStatesEnum getCurrentThermalState()
  * @method static bool isOnBatteryPower()
  */
 class PowerMonitor extends Facade

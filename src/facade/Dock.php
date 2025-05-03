@@ -1,9 +1,10 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
-use Native\Laravel\Menu\Menu;
+
+use native\thinkphp\menu\Menu;
+use think\Facade;
 
 /**
  * @method static void bounce()
@@ -18,6 +19,6 @@ class Dock extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \Native\Laravel\Dock::class;
+        return \native\thinkphp\Dock::class;
     }
 }

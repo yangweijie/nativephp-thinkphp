@@ -1,17 +1,18 @@
 <?php
 
-namespace Native\Laravel;
+namespace native\thinkphp;
 
-use Native\Laravel\Client\Client;
-use Native\Laravel\Contracts\PowerMonitor as PowerMonitorContract;
-use Native\Laravel\Enums\SystemIdleStatesEnum;
-use Native\Laravel\Enums\ThermalStatesEnum;
+
+use native\thinkphp\contract\PowerMonitor as PowerMonitorContract;
+use native\thinkphp\enums\SystemIdleStatesEnum;
+use native\thinkphp\enums\ThermalStatesEnum;
+use native\thinkphp\client\Client;
 
 class PowerMonitor implements PowerMonitorContract
 {
     public function __construct(protected Client $client) {}
 
-    public function getSystemIdleState(int $threshold): SystemIdleStatesEnum
+    public function getSystemIdleState(int $threshold)
     {
         $result = $this->client->get('power-monitor/get-system-idle-state', [
             'threshold' => $threshold,

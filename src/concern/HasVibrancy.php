@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Concerns;
+namespace native\thinkphp\concern;
 
 trait HasVibrancy
 {

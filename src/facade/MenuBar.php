@@ -1,12 +1,15 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
-use Native\Laravel\Menu\Menu;
+
+use native\thinkphp\menu\Menu;
+use native\thinkphp\menuBar\MenuBarManager;
+use native\thinkphp\menuBar\PendingCreateMenuBar;
+use think\Facade;
 
 /**
- * @method static \Native\Laravel\MenuBar\PendingCreateMenuBar create()
+ * @method static PendingCreateMenuBar create()
  * @method static void show()
  * @method static void hide()
  * @method static void label(string $label)
@@ -16,6 +19,6 @@ class MenuBar extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \Native\Laravel\MenuBar\MenuBarManager::class;
+        return MenuBarManager::class;
     }
 }

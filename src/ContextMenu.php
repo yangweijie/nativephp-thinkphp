@@ -1,15 +1,16 @@
 <?php
 
-namespace Native\Laravel;
+namespace native\thinkphp;
 
-use Native\Laravel\Client\Client;
-use Native\Laravel\Menu\Menu;
+
+use native\thinkphp\client\Client;
+use native\thinkphp\menu\Menu;
 
 class ContextMenu
 {
     public function __construct(protected Client $client) {}
 
-    public function register(Menu $menu)
+    public function register(Menu $menu): void
     {
         $items = $menu->toArray()['submenu'];
 
@@ -18,7 +19,7 @@ class ContextMenu
         ]);
     }
 
-    public function remove()
+    public function remove(): void
     {
         $this->client->delete('context');
     }

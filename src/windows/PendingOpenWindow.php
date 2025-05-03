@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Windows;
+namespace native\thinkphp\windows;
 
 class PendingOpenWindow extends Window
 {

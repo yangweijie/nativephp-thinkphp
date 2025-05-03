@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Concerns;
+namespace native\thinkphp\concern;
 
 trait HasUrl
 {
@@ -15,7 +15,7 @@ trait HasUrl
 
     public function route(string $route, array $parameters = []): self
     {
-        $this->url(route($route, $parameters));
+        $this->url(url($route, $parameters));
 
         return $this;
     }

@@ -1,6 +1,6 @@
 <?php
-
-namespace Native\Laravel;
+// TODO 兼容性
+namespace native\thinkphp;
 
 use Illuminate\Console\Application;
 use Illuminate\Foundation\Application as Foundation;
@@ -19,7 +19,7 @@ use Native\Laravel\Contracts\GlobalShortcut as GlobalShortcutContract;
 use Native\Laravel\Contracts\PowerMonitor as PowerMonitorContract;
 use Native\Laravel\Contracts\WindowManager as WindowManagerContract;
 use Native\Laravel\Events\EventWatcher;
-use Native\Laravel\Exceptions\Handler;
+use native\thinkphp\exception\Handler;
 use Native\Laravel\GlobalShortcut as GlobalShortcutImplementation;
 use Native\Laravel\Logging\LogWatcher;
 use Native\Laravel\PowerMonitor as PowerMonitorImplementation;

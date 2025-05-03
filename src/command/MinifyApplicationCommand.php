@@ -1,11 +1,11 @@
 <?php
 
-namespace Native\Laravel\Commands;
+namespace native\thinkphp\command;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Str;
-use Native\Laravel\Compactor\Php;
+use native\thinkphp\compactor\Php;
 use Symfony\Component\Finder\Finder;
+use think\console\Command;
+use think\helper\Str;
 
 class MinifyApplicationCommand extends Command
 {

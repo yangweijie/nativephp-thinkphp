@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\DataObjects;
+namespace native\thinkphp\dataObjects;
 
 class Printer
 {

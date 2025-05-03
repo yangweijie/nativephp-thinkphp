@@ -1,11 +1,13 @@
 <?php
 
-namespace Native\Laravel\Menu;
+namespace native\thinkphp\menu;
 
-use Illuminate\Support\Traits\Conditionable;
+
 use JsonSerializable;
-use Native\Laravel\Client\Client;
-use Native\Laravel\Contracts\MenuItem;
+
+use native\thinkphp\contract\MenuItem;
+use native\thinkphp\client\Client;
+use native\thinkphp\support\traits\Conditionable;
 
 class Menu implements JsonSerializable, MenuItem
 {

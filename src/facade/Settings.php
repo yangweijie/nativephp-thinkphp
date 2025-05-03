@@ -1,8 +1,9 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
+
+use think\Facade;
 
 /**
  * @method static void set(string $key, $value)
@@ -14,6 +15,6 @@ class Settings extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \Native\Laravel\Settings::class;
+        return \native\thinkphp\Settings::class;
     }
 }

@@ -1,34 +1,33 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
-use Native\Laravel\Contracts\ChildProcess as ChildProcessContract;
-use Native\Laravel\Fakes\ChildProcessFake;
+
+use native\thinkphp\contract\ChildProcess as ChildProcessContract;
+use native\thinkphp\fakes\ChildProcessFake;
+use think\Facade;
 
 /**
- * @method static \Native\Laravel\ChildProcess[] all()
- * @method static \Native\Laravel\ChildProcess get(string $alias = null)
- * @method static \Native\Laravel\ChildProcess message(string $message, string $alias = null)
- * @method static \Native\Laravel\ChildProcess restart(string $alias = null)
- * @method static \Native\Laravel\ChildProcess start(string|array $cmd, string $alias, string $cwd = null, array $env = null, bool $persistent = false)
- * @method static \Native\Laravel\ChildProcess php(string|array $cmd, string $alias, array $env = null, bool $persistent = false)
- * @method static \Native\Laravel\ChildProcess artisan(string|array $cmd, string $alias, array $env = null, bool $persistent = false)
+ * @method static \native\thinkphp\ChildProcess[] all()
+ * @method static \native\thinkphp\ChildProcess get(string $alias = null)
+ * @method static \native\thinkphp\ChildProcess message(string $message, string $alias = null)
+ * @method static \native\thinkphp\ChildProcess restart(string $alias = null)
+ * @method static \native\thinkphp\ChildProcess start(string|array $cmd, string $alias, string $cwd = null, array $env = null, bool $persistent = false)
+ * @method static \native\thinkphp\ChildProcess php(string|array $cmd, string $alias, array $env = null, bool $persistent = false)
+ * @method static \native\thinkphp\ChildProcess artisan(string|array $cmd, string $alias, array $env = null, bool $persistent = false)
  * @method static void stop(string $alias = null)
  */
 class ChildProcess extends Facade
 {
     public static function fake()
     {
-        return tap(static::getFacadeApplication()->make(ChildProcessFake::class), function ($fake) {
+        return tap(app()->make(ChildProcessFake::class), function ($fake) {
             static::swap($fake);
         });
     }
 
-    protected static function getFacadeAccessor()
+    protected static function getFacadeAccessor(): string
     {
-        self::clearResolvedInstance(ChildProcessContract::class);
-
         return ChildProcessContract::class;
     }
 }

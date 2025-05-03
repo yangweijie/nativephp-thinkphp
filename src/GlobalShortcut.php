@@ -1,9 +1,10 @@
 <?php
 
-namespace Native\Laravel;
+namespace native\thinkphp;
 
-use Native\Laravel\Client\Client;
-use Native\Laravel\Contracts\GlobalShortcut as GlobalShortcutContract;
+
+use native\thinkphp\client\Client;
+use native\thinkphp\contract\GlobalShortcut as GlobalShortcutContract;
 
 class GlobalShortcut implements GlobalShortcutContract
 {

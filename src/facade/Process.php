@@ -1,8 +1,9 @@
 <?php
 
-namespace Native\Laravel\Facades;
+namespace native\thinkphp\facade;
 
-use Illuminate\Support\Facades\Facade;
+
+use think\Facade;
 
 /**
  * @method static string arch()
@@ -14,6 +15,6 @@ class Process extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return \Native\Laravel\Process::class;
+        return \native\thinkphp\Process::class;
     }
 }

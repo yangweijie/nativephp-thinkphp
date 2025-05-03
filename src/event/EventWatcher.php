@@ -1,6 +1,6 @@
 <?php
 
-namespace Native\Laravel\Events;
+namespace native\thinkphp\event;
 
 use Illuminate\Support\Facades\Event;
 use Native\Laravel\Client\Client;

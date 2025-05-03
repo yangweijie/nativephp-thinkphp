@@ -1,9 +1,9 @@
 <?php
 
-namespace Native\Laravel;
+namespace native\thinkphp;
 
-use Native\Laravel\Client\Client;
-use Native\Laravel\Menu\Menu;
+use native\thinkphp\client\Client;
+use native\thinkphp\menu\Menu;
 
 class Dock
 {
