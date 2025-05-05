@@ -2,18 +2,23 @@
 
 namespace native\thinkphp\command;
 
-use Illuminate\Database\Console\Seeds\SeedCommand as BaseSeedCommand;
-use Native\Laravel\NativeServiceProvider;
+use Illuminate\Database\ConnectionResolverInterface as Resolver;
+use native\thinkphp\support\command\SeedCommand as BaseSeedCommand;
+use native\thinkphp\NativeService;
 
 class SeedDatabaseCommand extends BaseSeedCommand
 {
-    protected $name = 'native:db:seed';
 
-    protected $description = 'Run the database seeders in the NativePHP development environment';
+    public function __construct(Resolver $resolver){
+        $this->signature = 'native:db:seed';
+        parent::__construct($resolver);
+    }
 
-    public function handle()
+    protected string $description = 'Run the database seeders in the NativePHP development environment';
+
+    public function handle(): int
     {
-        (new NativeServiceProvider($this->laravel))->rewriteDatabase();
+        (new NativeService($this->app))->rewriteDatabase();
 
         return parent::handle();
     }

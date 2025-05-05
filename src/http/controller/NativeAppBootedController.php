@@ -2,7 +2,7 @@
 
 namespace native\thinkphp\http\controller;
 
-use Native\Laravel\Events\App\ApplicationBooted;
+use native\thinkphp\event\App\ApplicationBooted;
 use think\facade\Request;
 
 class NativeAppBootedController

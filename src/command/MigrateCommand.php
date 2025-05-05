@@ -3,13 +3,16 @@
 namespace native\thinkphp\command;
 
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Database\Console\Migrations\MigrateCommand as BaseMigrateCommand;
+use native\thinkphp\support\command\MigrateCommand as BaseMigrateCommand;
 use Illuminate\Database\Migrations\Migrator;
-use Native\Laravel\NativeServiceProvider;
+use native\thinkphp\NativeService;
+use Throwable;
+
 
 class MigrateCommand extends BaseMigrateCommand
 {
-    protected $description = 'Run the database migrations in the NativePHP development environment';
+    
+    protected string $description = 'Run the database migrations in the NativePHP development environment';
 
     public function __construct(Migrator $migrator, Dispatcher $dispatcher)
     {
@@ -18,9 +21,12 @@ class MigrateCommand extends BaseMigrateCommand
         parent::__construct($migrator, $dispatcher);
     }
 
-    public function handle()
+    /**
+     * @throws Throwable
+     */
+    public function handle(): int
     {
-        (new NativeServiceProvider($this->laravel))->rewriteDatabase();
+        (new NativeService($this->app))->rewriteDatabase();
 
         return parent::handle();
     }

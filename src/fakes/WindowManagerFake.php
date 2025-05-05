@@ -3,11 +3,11 @@
 namespace native\thinkphp\fakes;
 
 use Closure;
+use Illuminate\Support\Arr;
 use native\thinkphp\client\Client;
 use native\thinkphp\contract\WindowManager as WindowManagerContract;
 use native\thinkphp\windows\Window;
 use PHPUnit\Framework\Assert as PHPUnit;
-use think\helper\Arr;
 use Webmozart\Assert\Assert;
 
 class WindowManagerFake implements WindowManagerContract

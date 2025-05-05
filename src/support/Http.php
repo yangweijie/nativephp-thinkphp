@@ -5,7 +5,7 @@ namespace native\thinkphp\support;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\HandlerStack;
-use think\helper\Str;
+use Illuminate\Support\Str;
 use yzh52521\EasyHttp\ConnectionException;
 
 class Http extends \yzh52521\EasyHttp\Http

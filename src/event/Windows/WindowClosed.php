@@ -1,11 +1,11 @@
 <?php
 
-namespace Native\Laravel\Events\Windows;
+namespace native\thinkphp\event\Windows;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
-use Illuminate\Foundation\Events\Dispatchable;
+use native\thinkphp\support\traits\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 class WindowClosed implements ShouldBroadcastNow

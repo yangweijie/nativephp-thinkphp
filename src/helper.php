@@ -1,57 +1,17 @@
 <?php
 
-use native\thinkphp\support\HigherOrderTapProxy;
+use Illuminate\Broadcasting\PendingBroadcast;
+use Illuminate\Contracts\Broadcasting\Factory as BroadcastFactory;
 
-if (! function_exists('database_path')) {
+if (! function_exists('broadcast')) {
     /**
-     * Get the database path.
+     * Begin broadcasting an event.
      *
-     * @param  string  $path
-     * @return string
+     * @param  mixed|null  $event
+     * @return PendingBroadcast
      */
-    function database_path($path = '')
+    function broadcast($event = null): PendingBroadcast
     {
-        return root_path($path?:'database');
-    }
-}
-
-if (! function_exists('tap')) {
-    /**
-     * Call the given Closure with the given value then return the value.
-     *
-     * @template TValue
-     *
-     * @param  TValue  $value
-     * @param (callable(TValue): mixed)|null $callback
-     * @return ($callback is null ? HigherOrderTapProxy : TValue)
-     */
-    function tap($value, callable $callback = null)
-    {
-        if (is_null($callback)) {
-            return new HigherOrderTapProxy($value);
-        }
-
-        $callback($value);
-
-        return $value;
-    }
-}
-
-if (! function_exists('abort_if')) {
-    /**
-     * Throw an HttpException with the given data if the given condition is true.
-     *
-     * @param bool $boolean
-     * @param int $code
-     * @param string $message
-     * @param  array  $headers
-     * @return void
-     *
-     */
-    function abort_if(bool $boolean, int $code, string $message = '', array $headers = []): void
-    {
-        if ($boolean) {
-            abort($code, $message, $headers);
-        }
+        return app(BroadcastFactory::class)->event($event);
     }
 }

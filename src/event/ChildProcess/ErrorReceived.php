@@ -1,10 +1,10 @@
 <?php
 
-namespace Native\Laravel\Events\ChildProcess;
+namespace native\thinkphp\event\ChildProcess;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Foundation\Events\Dispatchable;
+use native\thinkphp\support\traits\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 class ErrorReceived implements ShouldBroadcast

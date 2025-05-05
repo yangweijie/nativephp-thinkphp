@@ -2,10 +2,11 @@
 
 namespace App\Providers;
 
-use Native\Laravel\Facades\Window;
-use Native\Laravel\Contracts\ProvidesPhpIni;
+use native\thinkphp\facade\Window;
+use native\thinkphp\contract\ProvidesPhpIni;
+use think\Service;
 
-class NativeAppServiceProvider implements ProvidesPhpIni
+class NativeAppService extends Service implements ProvidesPhpIni
 {
     /**
      * Executed once the native application has been booted.

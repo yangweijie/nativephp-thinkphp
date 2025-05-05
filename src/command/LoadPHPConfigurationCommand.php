@@ -3,14 +3,20 @@
 namespace native\thinkphp\command;
 
 
-use Native\Laravel\Contracts\ProvidesPhpIni;
+use native\thinkphp\contract\ProvidesPhpIni;
 use think\console\Command;
+use yangweijie\thinkphpPackageTools\adapter\laravel\LaravelCommand;
 
 class LoadPHPConfigurationCommand extends Command
 {
-    protected $signature = 'native:php-ini';
+    use LaravelCommand;
+    
+    public function __construct(){
+        $this->signature = 'native:php-ini';
+        parent::__construct();
+    }
 
-    public function handle()
+    public function handle(): void
     {
         /** @var ProvidesPhpIni $provider */
         $provider = app(config('nativephp.provider'));

@@ -9,18 +9,28 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
-        "illuminate/contracts": "^10.0|^11.0",
+        "ext-mbstring": "*",
+        "ext-pdo": "*",
+        "illuminate/queue": "^11.41",
         "phpunit/phpunit": "^11.5",
         "symfony/finder": "^6.2|^7.0",
         "topthink/framework": "^8.0",
+        "topthink/think-filesystem": "^3.0",
         "topthink/think-migration": "^3.1",
+        "topthink/think-queue": "^3.0",
         "webmozart/assert": "^1.11",
-        "yzh52521/easyhttp": "^1.1",
-        "ext-mbstring": "*"
+        "yangweijie/thinkphp-package-tools": "dev-main",
+        "yzh52521/easyhttp": "^1.1"
     },
     "require-dev": {
         "guzzlehttp/guzzle": "^7.0"
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../thinkphp-package-tools"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "native\\thinkphp\\": "src/"
@@ -45,18 +55,6 @@
             "services": [
                 "native\\thinkphp\\NativeService"
             ]
-        },
-        "laravel": {
-            "providers": [
-              "Native\\Laravel\\NativeServiceProvider"
-            ],
-            "aliases": {
-                "ContextMenu": "Native\\Laravel\\Facades\\ContextMenu",
-                "Dock": "Native\\Laravel\\Facades\\Dock",
-                "Process": "Native\\Laravel\\Facades\\Process",
-                "Window": "Native\\Laravel\\Facades\\Window",
-                "Clipboard": "Native\\Laravel\\Facades\\Clipboard"
-            }
         }
     },
     "minimum-stability": "dev",

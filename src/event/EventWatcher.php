@@ -3,7 +3,7 @@
 namespace native\thinkphp\event;
 
 use Illuminate\Support\Facades\Event;
-use Native\Laravel\Client\Client;
+use native\thinkphp\client\Client;
 
 class EventWatcher
 {
@@ -26,7 +26,7 @@ class EventWatcher
             }
 
             // Only post custom events to broadcasting endpoint
-            if (str_starts_with($eventName, 'Native\\Laravel\\Events')) {
+            if (str_starts_with($eventName, 'native\\thinkphp\\event')) {
                 return;
             }
 

@@ -2,14 +2,20 @@
 
 namespace native\thinkphp\command;
 
+use Illuminate\Support\Str;
 use native\thinkphp\compactor\Php;
 use Symfony\Component\Finder\Finder;
 use think\console\Command;
-use think\helper\Str;
+use yangweijie\thinkphpPackageTools\adapter\laravel\LaravelCommand;
 
 class MinifyApplicationCommand extends Command
 {
-    protected $signature = 'native:minify {app}';
+    use LaravelCommand;
+    
+    public function __construct(){
+        $this->signature = 'native:minify {app}';
+        parent::__construct();
+    }
 
     public function handle()
     {
