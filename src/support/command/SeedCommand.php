@@ -24,13 +24,6 @@ class SeedCommand extends Command
     protected $name = 'db:seed';
 
     /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected string $description = 'Seed the database with records';
-
-    /**
      * The connection resolver instance.
      *
      * @var Resolver
@@ -46,7 +39,7 @@ class SeedCommand extends Command
     public function __construct(Resolver $resolver)
     {
         parent::__construct();
-
+        $this->description = 'Seed the database with records';
         $this->resolver = $resolver;
     }
 

@@ -68,6 +68,7 @@ class MigrateCommand extends Command
      * Execute the console command.
      *
      * @return int
+     * @throws Throwable
      */
     public function handle()
     {
@@ -149,6 +150,7 @@ class MigrateCommand extends Command
      * Determine if the migrator repository exists.
      *
      * @return bool
+     * @throws Throwable
      */
     protected function repositoryExists()
     {
@@ -164,7 +166,7 @@ class MigrateCommand extends Command
     /**
      * Attempt to create the database if it is missing.
      *
-     * @param  \Throwable  $e
+     * @param Throwable $e
      * @return bool
      */
     protected function handleMissingDatabase(Throwable $e)
