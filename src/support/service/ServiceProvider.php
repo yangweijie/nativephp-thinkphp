@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\DefaultProviders;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
+use think\App;
 
 /**
  * @property array<string, string> $bindings All of the container bindings that should be registered.
@@ -20,7 +21,7 @@ use Illuminate\View\Compilers\BladeCompiler;
 abstract class ServiceProvider
 {
 
-    protected \think\App $app;
+    protected App $app;
 
     /**
      * All of the registered booting callbacks.
@@ -74,7 +75,7 @@ abstract class ServiceProvider
     /**
      * Create a new service provider instance.
      *
-     * @param  \Illuminate\Contracts\Foundation\Application  $app
+     * @param    $app
      * @return void
      */
     public function __construct($app)

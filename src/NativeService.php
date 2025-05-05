@@ -45,33 +45,33 @@ class NativeService extends PackageService
 
     public function registeringPackage()
     {
-        // $this->app->bind('migrator', function(){
-        //     return new ConsoleSupportService($this->app);
-        // });
-        // ThinkPHP：绑定单例
-        // $this->app->bind(FreshCommand::class, function () {
-        //     return new FreshCommand(app('migrator')); // 解析依赖的 migrator 服务
-        // }, true); // 第三个参数 true 表示单例绑定
+         $this->app->bind('migrator', function(){
+             return new ConsoleSupportService($this->app);
+         });
+         //ThinkPHP：绑定单例
+         $this->app->bind(FreshCommand::class, function () {
+             return new FreshCommand(app('migrator')); // 解析依赖的 migrator 服务
+         }, true); // 第三个参数 true 表示单例绑定
 
-        // $this->app->bind(MigrateCommand::class, function (\think\App $app) {
-        //     return new MigrateCommand($app['migrator'], $app['events']);
-        // });
+         $this->app->bind(MigrateCommand::class, function (\think\App $app) {
+             return new MigrateCommand($app['migrator'], $app['events']);
+         });
 
-        // $this->app->bind(WindowManagerContract::class, function (Client $client) {
-        //     return new WindowManagerImplementation($client);
-        // });
+         $this->app->bind(WindowManagerContract::class, function (Client $client) {
+             return new WindowManagerImplementation($client);
+         });
 
-        // $this->app->bind(ChildProcessContract::class, function (Client $client) {
-        //     return new ChildProcessImplementation($client);
-        // });
+         $this->app->bind(ChildProcessContract::class, function (Client $client) {
+             return new ChildProcessImplementation($client);
+         });
 
-        // $this->app->bind(GlobalShortcutContract::class, function (Client $client) {
-        //     return new GlobalShortcutImplementation($client);
-        // });
+         $this->app->bind(GlobalShortcutContract::class, function (Client $client) {
+             return new GlobalShortcutImplementation($client);
+         });
 
-        // $this->app->bind(PowerMonitorContract::class, function (Client $client) {
-        //     return new PowerMonitorImplementation($client);
-        // });
+         $this->app->bind(PowerMonitorContract::class, function (Client $client) {
+             return new PowerMonitorImplementation($client);
+         });
 
         if (config('nativephp-internal.running')) {
             $this->app->bind(['think\exception\Handle'=> Handler::class]);
