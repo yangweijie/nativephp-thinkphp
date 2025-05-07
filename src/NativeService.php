@@ -88,7 +88,7 @@ class NativeService extends PackageService
 
     public function boot(){
         if (config('nativephp-internal.running')) {
-            $this->rewriteDatabase();
+            // $this->rewriteDatabase();
         }
         parent::boot();
     }
